@@ -68,6 +68,10 @@ I will release it soon on HF hub.
 training data format:
 {"image_url": , "conversations":, "source":,} (We will release the data soon).
 
+Stage 1: 
+
+Stage 2:
+
 <a name="inference"/>
 
 ## 🧠 Inference

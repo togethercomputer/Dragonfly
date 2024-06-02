@@ -294,6 +294,7 @@ class DragonflyForCausalLM(DragonflyPreTrainedModel):
                     ).hidden_states[-2] for patch_pixel_values in image_patches
                 ]
                 ie_outputs = [self.vision_embed_tokens(patch_pixel_values.to(self.vision_embed_tokens.weight.dtype)) for patch_pixel_values in ie_outputs]
+                
                 # region 1
                 abstract_query1 = [torch.mean(patch_item[1],0) for patch_item in ie_outputs]
                 query_ranks1 =[torch.matmul(qr, abstract.unsqueeze(-1)).squeeze(-1) for qr, abstract in zip(query_ranks, abstract_query1)]
@@ -325,7 +326,7 @@ class DragonflyForCausalLM(DragonflyPreTrainedModel):
                 query_ranks_mask4.scatter_(0, torch.arange(0,region_token_interval*3).to(query_ranks[0].device), float('-inf'))  #add
                 query_ranks4 = [T + query_ranks_mask4 for T in query_ranks4] #add
                 query_ranks4 = [torch.topk(item, topk).indices for item in query_ranks4]
-                
+
                 # Construct visual encoding
                 query_ranks = [torch.concat([q1,q2,q3,q4]) for q1,q2,q3,q4 in zip(query_ranks1,query_ranks2,query_ranks3,query_ranks4)]
                 query_ranks = [torch.sort(item).values for item in query_ranks]
