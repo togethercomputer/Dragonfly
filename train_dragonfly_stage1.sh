@@ -1,0 +1,29 @@
+export HF_DATASETS_CACHE=/scratch/kezhen/cache
+export NCCL_SOCKET_IFNAME=ens7
+
+accelerate launch --config_file=./pipeline/accelerate_configs/accelerate_config_zero1.yaml \
+    --num_processes=8 \
+    pipeline/train/training.py \
+    --batch_size 4 \
+    --total_training_steps 17400 \
+    --external_save_dir /scratch/kezhen/checkpoints/test_run \
+    --run_name test_run_stage1 \
+    --workers 8 \
+    --lr_scheduler cosine \
+    --learning_rate 2e-5 \
+    --warmup_steps_ratio 0.01 \
+    --save_hf_model \
+    --resume_from_checkpoint \
+    --data_dir /data/kezhen/multi-modality/merged_dataset/stage1 \
+    --image_dir /data/kezhen/multi-modality/images \
+    --together_hq_datasets llava_pretrain \
+    --logging_steps 1000 \
+    --max_seq_length 2048 \
+    --checkpointing_steps 5000 \
+    --image_encoder_name_or_path openai/clip-vit-base-patch32 \
+    --text_pretrained_model_name_or_path meta-llama/Meta-Llama-3-8B-Instruct \
+    --mm_tune_vision_encoder \
+    --tune_vision_embed_tokens_only \
+    --data_cache_dir /data/.hf_cache_mm/datasets
+
+    
