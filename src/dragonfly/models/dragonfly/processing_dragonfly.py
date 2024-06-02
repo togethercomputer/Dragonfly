@@ -37,6 +37,9 @@ TOKEN_POINT_OPEN_STRING = "<|reserved_special_token_4|>"  # <point>
 TOKEN_POINT_CLOSE_STRING = "<|reserved_special_token_5|>"  # </point>
 BEGINNING_OF_ANSWER_STRING = "<|end_header_id|>"  # <boa>
 
+IMG_EMB_LENGTH = 17
+IMAGE_PATCH_SIZE = 50
+
 
 def full_unpacked_stream_to_tensor(
     all_bi_tokens_to_place: List[int],
@@ -435,13 +438,13 @@ def scale_bbox_to_transformed_image(top: float, left: float, bottom: float, righ
 
 class DragonflyProcessor(ProcessorMixin):
     r"""
-    Constructs a Dragonfly processor which wraps a Fuyu image processor and a Llama tokenizer into a single processor.
+    Constructs a Dragonfly processor which wraps a image processor and a Llama tokenizer into a single processor.
 
-    [`DragonflyProcessor`] offers all the functionalities of [`FuyuImageProcessor`] and [`LlamaTokenizerFast`]. See the
+    [`DragonflyProcessor`] offers all the functionalities of [`AutoImageProcessor`] and [`LlamaTokenizerFast`]. See the
     [`~DragonflyProcessor.__call__`] and [`~DragonflyProcessor.decode`] for more information.
 
     Args:
-        image_processor ([`FuyuImageProcessor`]):
+        image_processor ([`AutoImageProcessor`]):
             The image processor is a required input.
         tokenizer ([`LlamaTokenizerFast`]):
             The tokenizer is a required input.
@@ -613,13 +616,8 @@ class DragonflyProcessor(ProcessorMixin):
         # print(prompt_tokens)
         raw_img_emb_len, imgc, imgw, imgh = pixel_values.size()
         
-        img_emb_len = 1+4+12
-        if imgw == 224:
-            image_patch_size = 50
-        elif imgw == 336:
-            image_patch_size = 577
-        else:
-            image_patch_size = patch_size
+        img_emb_len = IMG_EMB_LENGTH
+        image_patch_size = IMAGE_PATCH_SIZE
         
         image_newline_idx = [i for i in range(img_emb_len*(1+image_patch_size)) if (i+1) % (image_patch_size+1) == 0]
         img_input_id_item = torch.full(

@@ -76,7 +76,7 @@ def format_llama3_prompt(item):
     return formated_prompt
 
 
-def prepare_fuyu(batch_data, processor, image_dir=None, max_length=None):
+def prepare_dragonfly_sample(batch_data, processor, image_dir=None, max_length=None):
     def hq_dataset_pp(example):
         if 'image_url' in example and example['image_url'] is not None and example['image_url'].strip() !="":
             if example['image_url'].startswith('/data/'):

@@ -1,6 +1,6 @@
 import torch
 
-from transformers import FuyuPreTrainedModel, AutoModelForCausalLM, FuyuConfig, PretrainedConfig
+from transformers import PreTrainedModel, AutoModelForCausalLM, PretrainedConfig
 from transformers import AutoModelForCausalLM
 from transformers import CLIPVisionModel
 from transformers.modeling_outputs import BaseModelOutputWithPast
@@ -15,7 +15,7 @@ logger = logging.get_logger(__name__)
 
 class DragonflyConfig(PretrainedConfig):
 
-    model_type = "fuyu"
+    model_type = "dragonfly"
     keys_to_ignore_at_inference = ["past_key_values"]
 
     def __init__(
@@ -124,7 +124,26 @@ class DragonflyConfig(PretrainedConfig):
             raise ValueError(f"`rope_scaling`'s factor field must be a float > 1, got {rope_scaling_factor}")
 
 
-class DragonflyForCausalLM(FuyuPreTrainedModel):
+class DragonflyPreTrainedModel(PreTrainedModel):
+    config_class = DragonflyConfig
+    base_model_prefix = "dragonfly"
+    supports_gradient_checkpointing = True
+    _no_split_modules = []
+    _skip_keys_device_placement = "past_key_values"
+
+    def _init_weights(self, module):
+        std = self.config.initializer_range
+        if isinstance(module, nn.Linear):
+            module.weight.data.normal_(mean=0.0, std=std)
+            if module.bias is not None:
+                module.bias.data.zero_()
+        elif isinstance(module, nn.Embedding):
+            module.weight.data.normal_(mean=0.0, std=std)
+            if module.padding_idx is not None:
+                module.weight.data[module.padding_idx].zero_()
+
+
+class DragonflyForCausalLM(DragonflyPreTrainedModel):
     """
     Dragonfly class
 

@@ -19,7 +19,6 @@ from transformers import (
     get_cosine_schedule_with_warmup,
     get_linear_schedule_with_warmup,
     AutoTokenizer,
-    FuyuImageProcessor,
     AutoProcessor
 )
 import wandb

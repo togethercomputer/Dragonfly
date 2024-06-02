@@ -26,7 +26,7 @@ from transformers import (
 import wandb
 
 sys.path.append("../..")
-from pipeline.data_utils.data import load_dragonfly_pretrain_dataset, prepare_fuyu, load_dragonfly_val_dataset
+from pipeline.data_utils.data import load_dragonfly_pretrain_dataset, prepare_dragonfly_sample, load_dragonfly_val_dataset
 from pipeline.train.distributed import world_info_from_env
 from pipeline.train.train_utils import (
     AverageMeter,
@@ -212,7 +212,7 @@ def parse_args():
         "--image_encoder_name_or_path",
         type=str,
         default=None,
-        help="Whether to use image encoder. If None, use fuyu style.",
+        help="Whether to use image encoder.",
     )
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--learning_rate", default=1e-4, type=float)
@@ -717,7 +717,7 @@ def main():
             pin_memory=True,
             drop_last=True,
             collate_fn=partial(
-                prepare_fuyu,
+                prepare_dragonfly_sample,
                 image_dir=args.image_dir,
                 processor=processor,
                 max_length=args.max_seq_length,
@@ -732,7 +732,7 @@ def main():
                 pin_memory=True,
                 drop_last=True,
                 collate_fn=partial(
-                    prepare_fuyu,
+                    prepare_dragonfly_sample,
                     image_dir=args.image_dir,
                     processor=processor,
                     max_length=args.max_seq_length,
@@ -750,7 +750,7 @@ def main():
                 pin_memory=True,
                 drop_last=True,
                 collate_fn=partial(
-                    prepare_fuyu,
+                    prepare_dragonfly_sample,
                     image_dir=args.image_dir,
                     processor=processor,
                     max_length=args.max_seq_length,
@@ -767,7 +767,7 @@ def main():
                 pin_memory=True,
                 drop_last=True,
                 collate_fn=partial(
-                    prepare_fuyu,
+                    prepare_dragonfly_sample,
                     processor=processor,
                     max_length=args.max_seq_length,
                  ),
