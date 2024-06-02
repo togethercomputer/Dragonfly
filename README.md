@@ -1,4 +1,7 @@
-# Dragonfly: Multi-Resolution Zoom Supercharges Large Visual-Language Model
+<div align="center">
+  <img src="assets/dragonfly_icon.png" alt="Dragonfly" style="width: 150px; display: block; margin-left: auto; margin-right: auto;" />
+  <h1>Dragonfly: Multi-Resolution Zoom Supercharges Large Visual-Language Model</h1>
+</div>
 
 ## 🔥 News
 - [Our paper](todo) is out on arxiv.
