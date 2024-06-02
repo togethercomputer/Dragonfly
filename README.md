@@ -26,8 +26,6 @@ Recent advances in large multimodal models (LMMs) suggest that higher image reso
 
 ## 💿 Installation
 
-Please use the following steps to create an environment for running Dragonfly.
-
 Clone this repository and navigate to LLaVA folder
 ```bash
 git clone https://github.com/togethercomputer/Dragonfly.git
@@ -47,17 +45,6 @@ pip uninstall -y ninja && pip install ninja
 pip install flash-attn --no-build-isolation
 ```
 
-<a name="training"/>
-
-## 🏋️‍♂️ Training
-training data format:
-{"image_url": , "conversations":, "source":,} (We will release the data soon).
-
-<a name="inference"/>
-
-## 🧠 Inference
-How to perform the one pass inference. Refer test_dragonfly.py
-
 <a name="checkpoint"/>
 
 ## 🏁 Checkpoint
@@ -71,6 +58,18 @@ license: research-only
 ## 📊 Dataset
 
 I will release it soon on HF hub. 
+
+<a name="training"/>
+
+## 🏋️‍♂️ Training
+training data format:
+{"image_url": , "conversations":, "source":,} (We will release the data soon).
+
+<a name="inference"/>
+
+## 🧠 Inference
+How to perform the one pass inference. Refer test_dragonfly.py
+
 
 <a name="bibtex"/>
 
