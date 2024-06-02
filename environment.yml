@@ -1,4 +1,4 @@
-name: together_mm
+name: dragonfly_env
 channels:
   - defaults
 dependencies:
