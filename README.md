@@ -65,12 +65,38 @@ I will release it soon on HF hub.
 <a name="training"/>
 
 ## 🏋️‍♂️ Training
-training data format:
-{"image_url": , "conversations":, "source":,} (We will release the data soon).
 
-Stage 1: 
+*Note: This training recipe is specifically for our general domain model.*
 
-Stage 2:
+We adopt a two-stage training process.
+
+### Stage 1
+In this stage, we only train our projection layer, so that the model learns to map the embeddings from the vision encoder into the LLM space. The dataset mixture used in this stage is `stage1_dataset`, which contains short image and caption pairs. The training script is `train_dragonfly_stage1.sh`.
+
+### Stage 2
+In this stage, we train our vision encoder, projection layer, and LLM jointly on image and text data. Our training dataset mixture for this stage is provided in `stage2_dataset`. This dataset contains xx.xx% of text-only dataset as well. We also include a math dataset, given in `math_instruct`. The training script is `train_dragonfly_stage2.sh`.
+
+Please ensure to update the paths inside the bash script according to your local file paths.
+
+For both stages, the dataset is formatted in the following manner:
+
+```json
+{
+  "image_url": "<path_to_image>",
+  "conversations": "<text_data_formatted>",
+  "source": "<data_source>"
+}
+```
+
+Conversation format follows standard Llama3 as follows. 
+
+```plaintext
+<|begin_of_text|><|start_header_id|>system<|end_header_id|>
+
+You are a helpful AI assistant for travel tips and recommendations<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+What can you help me with?<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+```
 
 <a name="inference"/>
 
