@@ -49,7 +49,7 @@ torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
 torch.backends.cuda.enable_flash_sdp(True)
 
-pretrained_model_name_or_path = "/data/kezhen/multi-modality/checkpoints/final_runs_v3/raccoon_zoom_select_mix10_sharegptpt"
+pretrained_model_name_or_path = "your checkpoint path"
 
 def main():
 
