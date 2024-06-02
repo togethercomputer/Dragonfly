@@ -301,6 +301,7 @@ class DragonflyForCausalLM(DragonflyPreTrainedModel):
                 query_ranks_mask1.scatter_(0, torch.arange(region_token_interval,region_token_interval*4).to(query_ranks[0].device), float('-inf'))
                 query_ranks1 = [T + query_ranks_mask1 for T in query_ranks1]
                 query_ranks1 = [torch.topk(item, topk).indices for item in query_ranks1]
+
                 # region 2
                 abstract_query2 = [torch.mean(patch_item[2],0) for patch_item in ie_outputs]
                 query_ranks2 = [torch.matmul(qr, abstract.unsqueeze(-1)).squeeze(-1) for qr, abstract in zip(query_ranks, abstract_query2)]
@@ -308,6 +309,7 @@ class DragonflyForCausalLM(DragonflyPreTrainedModel):
                 query_ranks_mask2.scatter_(0, torch.concat([torch.arange(0,region_token_interval).to(query_ranks[0].device), torch.arange(region_token_interval*2,region_token_interval*4).to(query_ranks[0].device)]), float('-inf'))
                 query_ranks2 = [T + query_ranks_mask2 for T in query_ranks2]
                 query_ranks2 = [torch.topk(item, topk).indices for item in query_ranks2]
+
                 # region 3
                 abstract_query3 = [torch.mean(patch_item[3],0) for patch_item in ie_outputs]
                 query_ranks3 =[torch.matmul(qr, abstract.unsqueeze(-1)).squeeze(-1) for qr, abstract in zip(query_ranks, abstract_query3)]
@@ -315,6 +317,7 @@ class DragonflyForCausalLM(DragonflyPreTrainedModel):
                 query_ranks_mask3.scatter_(0, torch.concat([torch.arange(0,region_token_interval*2).to(query_ranks[0].device), torch.arange(region_token_interval*3,region_token_interval*4).to(query_ranks[0].device)]), float('-inf'))  #add
                 query_ranks3 = [T + query_ranks_mask3 for T in query_ranks3] #add
                 query_ranks3 = [torch.topk(item, topk).indices for item in query_ranks3]
+
                 # region 4
                 abstract_query4 = [torch.mean(patch_item[4],0) for patch_item in ie_outputs]
                 query_ranks4 =[torch.matmul(qr, abstract.unsqueeze(-1)).squeeze(-1) for qr, abstract in zip(query_ranks, abstract_query4)]
@@ -322,6 +325,7 @@ class DragonflyForCausalLM(DragonflyPreTrainedModel):
                 query_ranks_mask4.scatter_(0, torch.arange(0,region_token_interval*3).to(query_ranks[0].device), float('-inf'))  #add
                 query_ranks4 = [T + query_ranks_mask4 for T in query_ranks4] #add
                 query_ranks4 = [torch.topk(item, topk).indices for item in query_ranks4]
+                
                 # Construct visual encoding
                 query_ranks = [torch.concat([q1,q2,q3,q4]) for q1,q2,q3,q4 in zip(query_ranks1,query_ranks2,query_ranks3,query_ranks4)]
                 query_ranks = [torch.sort(item).values for item in query_ranks]
