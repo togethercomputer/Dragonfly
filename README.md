@@ -71,7 +71,7 @@ I will release it soon on HF hub.
 We adopt a two-stage training process.
 
 ### Stage 1
-In this stage, we only train our projection layer, so that the model learns to map the embeddings from the vision encoder into the LLM space. The dataset mixture used in this stage is `stage1_dataset`, which contains short image and caption pairs. The training script is ``.
+In this stage, we only train our projection layer, so that the model learns to map the embeddings from the vision encoder into the LLM space. The dataset mixture used in this stage is `stage1_dataset`, which contains short image and caption pairs.
 
 ```bash
 sh train_dragonfly_stage1.sh

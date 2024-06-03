@@ -278,6 +278,8 @@ class DragonflyForCausalLM(DragonflyPreTrainedModel):
             inputs_embeds = self.language_model.get_input_embeddings()(input_ids)
             if image_patches is not None and past_key_values is None:
 
+                # first, lets extract the high resolution image patches and generate embeddings from them using the image encoder
+                # we also project them through the projection layer
                 query_hd_patches = [full_img_patches[5:] for full_img_patches in image_patches]
                 query_outputs = [
                     self.image_encoder(
@@ -287,6 +289,9 @@ class DragonflyForCausalLM(DragonflyPreTrainedModel):
                 query_image_patches = [item.hidden_states[-2] for item in query_outputs]
                 query_image_patches = [self.vision_embed_tokens(patch.to(self.vision_embed_tokens.weight.dtype)) for patch in query_image_patches]
                 query_ranks = [torch.mean(query_item,1) for query_item in query_image_patches]
+
+                # now, lets extract the low and mid resolution image patches and generate embeddings from them using the image encoder
+                # we similarly project them through the projection layer
                 image_patches = [full_img_patches[:5] for full_img_patches in image_patches]
                 ie_outputs = [
                     self.image_encoder(
@@ -294,6 +299,12 @@ class DragonflyForCausalLM(DragonflyPreTrainedModel):
                     ).hidden_states[-2] for patch_pixel_values in image_patches
                 ]
                 ie_outputs = [self.vision_embed_tokens(patch_pixel_values.to(self.vision_embed_tokens.weight.dtype)) for patch_pixel_values in ie_outputs]
+
+                """Now, for each mid resolution region, we select the top k high resolution regions using 
+                the dot product of the region embeddings with the query embeddings. The query embeddings 
+                are the mean of the high resolution region embeddings and the region embeddings are the 
+                mean of the mid resolution region embeddings
+                """
                 
                 # region 1
                 abstract_query1 = [torch.mean(patch_item[1],0) for patch_item in ie_outputs]
