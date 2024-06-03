@@ -15,21 +15,21 @@ def format_text(text, system_prompt=""):
     return prompt
 
 # for general domain
-# model_name = "togethercomputer/Dragonfly-v1-llama8b"
-# model_type = "llava-hd"
-# question = "What do you see in the image?"
-# image_path = "./test_images/dragonfly.png"
+model_name = "togethercomputer/Dragonfly-v1-llama8b"
+model_type = "llava-hd"
+question = "What do you see in the image?"
+image_path = "./test_images/skateboard.png"
 
 # for biomedical domain
-model_name = "togethercomputer/Dragonfly-med-v1-llama8b"
-model_type = "llava-hd"
-question = "are the lungs normal appearing?"
-image_path = "./test_images/chext-xray.jpeg"
+# model_name = "togethercomputer/Dragonfly-med-v1-llama8b"
+# model_type = "llava-hd"
+# question = "are the lungs normal appearing?"
+# image_path = "./test_images/chext-xray.jpeg"
 
 
 device = 0
 temperature = 0.2
-max_new_tokens = 16
+max_new_tokens = 64
 
 
 # instantiate the tokenizer, processor, and model

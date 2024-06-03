@@ -82,18 +82,18 @@ from transformers import AutoProcessor, AutoTokenizer
 
 Instantiate the tokenizer, processor, and model. 
 ```python
-tokenizer = AutoTokenizer.from_pretrained("togethercomputer/Dragonfly-med-v1-llama8b")
+tokenizer = AutoTokenizer.from_pretrained("togethercomputer/Dragonfly-v1-llama8b")
 clip_processor = AutoProcessor.from_pretrained('openai/clip-vit-base-patch32')
 image_processor = clip_processor.image_processor
 processor = DragonflyProcessor(image_processor=image_processor, tokenizer=tokenizer, image_encoding_style="llava-hd")
-model = DragonflyForCausalLM.from_pretrained("togethercomputer/Dragonfly-med-v1-llama8b")
+model = DragonflyForCausalLM.from_pretrained("togethercomputer/Dragonfly-v1-llama8b")
 model = model.to(torch.bfloat16)
 model = model.to(f"cuda:0")
 ```
 
 Now, lets load the image and process them.
 ```python
-image = Image.open("./test_images/chext-xray.jpeg")
+image = Image.open("./test_images/skateboard.png")
 image = image.convert('RGB')
 images = [image]
 # images = None # if you do not want to pass any images
@@ -110,6 +110,8 @@ inputs = inputs.to(f"cuda:0")
 
 Finally, let us generate the responses from the model
 ```python
+temperature = 0.2
+max_new_tokens = 64
 with torch.inference_mode():
     output_ids = model.generate(
         **inputs,
@@ -121,6 +123,11 @@ with torch.inference_mode():
     )
 
 outputs = processor.batch_decode(output_ids, skip_special_tokens=True)
+```
+
+An example response.
+```python
+"The image shows a skate park with a man performing a trick on his skateboard. He is in mid-air, with his skateboard flipping beneath him. The skate park is surrounded by a fence, and there are trees and a building in the background. There are also several people watching the man's performance."
 ```
 
 <a name="dataset"/>
