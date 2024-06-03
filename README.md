@@ -71,10 +71,18 @@ I will release it soon on HF hub.
 We adopt a two-stage training process.
 
 ### Stage 1
-In this stage, we only train our projection layer, so that the model learns to map the embeddings from the vision encoder into the LLM space. The dataset mixture used in this stage is `stage1_dataset`, which contains short image and caption pairs. The training script is `train_dragonfly_stage1.sh`.
+In this stage, we only train our projection layer, so that the model learns to map the embeddings from the vision encoder into the LLM space. The dataset mixture used in this stage is `stage1_dataset`, which contains short image and caption pairs. The training script is ``.
+
+```bash
+sh train_dragonfly_stage1.sh
+```
 
 ### Stage 2
-In this stage, we train our vision encoder, projection layer, and LLM jointly on image and text data. Our training dataset mixture for this stage is provided in `stage2_dataset`. This dataset contains xx.xx% of text-only dataset as well. We also include a math dataset, given in `math_instruct`. The training script is `train_dragonfly_stage2.sh`.
+In this stage, we train our vision encoder, projection layer, and LLM jointly on image and text data. Our training dataset mixture for this stage is provided in `stage2_dataset`. This dataset contains xx.xx% of text-only dataset as well. We also include a math dataset, given in `math_instruct`. 
+
+```bash
+sh train_dragonfly_stage2.sh
+```
 
 Please ensure to update the paths inside the bash script according to your local file paths.
 
