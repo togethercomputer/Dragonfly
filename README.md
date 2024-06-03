@@ -6,7 +6,7 @@
 ## 🔥 News
 - [Our paper](todo) is out on arxiv.
 - Check out [our blogpost](todo).
-- Our model checkpoints are out on huggingface: 
+- Our model checkpoints are out on huggingface 🤗 🚀: 
     - General: `togethercomputer/Dragonfly-v1-llama8b` 
     - Biomed: `togethercomputer/Dragonfly-med-v1-llama8b`
 
