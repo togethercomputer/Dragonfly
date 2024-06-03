@@ -36,3 +36,5 @@ pyyaml>=6.0.1
 pytest>=7.4.2
 prettytable>=3.9.0
 datasets
+packaging
+ninja

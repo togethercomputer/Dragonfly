@@ -6,6 +6,9 @@
 ## 🔥 News
 - [Our paper](todo) is out on arxiv.
 - Check out [our blogpost](todo).
+- Our model checkpoints are out on huggingface: 
+    - General: `togethercomputer/Dragonfly-v1-llama8b` 
+    - Biomed: `togethercomputer/Dragonfly-med-v1-llama8b`
 
 
 ## 📖 Introduction
@@ -18,9 +21,9 @@ Recent advances in large multimodal models (LMMs) suggest that higher image reso
 # 📖 Table of Contents
 1. [Installation](#installation)
 2. [Checkpoint](#checkpoint)
+5. [Inference](#inference)
 3. [Dataset](#dataset)
 4. [Training](#training)
-5. [Inference](#inference)
 6. [BibTeX](#bibtex)
 7. [Licence](#license)
 
@@ -41,20 +44,84 @@ conda env create -f environment.yml
 conda activate dragonfly_env
 ```
 
-Install additional packages for training cases
+Install flash attention
 ```bash
-pip install packaging
-pip uninstall -y ninja && pip install ninja
 pip install flash-attn --no-build-isolation
+```
+
+As a final step, please run the following command. 
+```bash
+pip install --upgrade -e .
 ```
 
 <a name="checkpoint"/>
 
 ## 🏁 Checkpoint
 
-Dragonfly-v1-llama8b
-Dragonfly-med-v1-llama8b
-license: research-only
+*Note: These models are released under Creative Commons Attribution Non Commercial 4.0*
+
+We release two huggingface model checkpoints: `togethercomputer/Dragonfly-med-v1-llama8b` and `togethercomputer/Dragonfly-v1-llama8b`. Please follow the script `pipeline/train/testing.py` for more details. We provide a brief description on how to use them below.
+
+<a name="inference"/>
+
+## 🧠 Inference
+
+If you have successfully completed the [Installation](#installation) process, then you should be able to follow the steps below. 
+
+We provide two test examples inside `pipeline/train/test_images`. 
+
+Load necessary packages
+```python
+import sys
+from PIL import Image
+import torch
+from dragonfly.models.modeling_dragonfly import *
+from dragonfly.models.processing_dragonfly import *
+from transformers import AutoProcessor, AutoTokenizer
+```
+
+Instantiate the tokenizer, processor, and model. 
+```python
+tokenizer = AutoTokenizer.from_pretrained("togethercomputer/Dragonfly-med-v1-llama8b")
+clip_processor = AutoProcessor.from_pretrained('openai/clip-vit-base-patch32')
+image_processor = clip_processor.image_processor
+processor = DragonflyProcessor(image_processor=image_processor, tokenizer=tokenizer, image_encoding_style="llava-hd")
+model = DragonflyForCausalLM.from_pretrained("togethercomputer/Dragonfly-med-v1-llama8b")
+model = model.to(torch.bfloat16)
+model = model.to(f"cuda:0")
+```
+
+Now, lets load the image and process them.
+```python
+image = Image.open("./test_images/chext-xray.jpeg")
+image = image.convert('RGB')
+images = [image]
+# images = None # if you do not want to pass any images
+
+question = "are the lungs normal appearing?"
+text_prompt = format_text(question)
+inputs = processor(text=[text_prompt], images=[image], max_length=1024, return_tensors="pt")
+inputs['input_ids'] = inputs['input_ids'][0][:-1].unsqueeze(0)
+inputs['attention_mask'] = inputs['attention_mask'][0][:-1].unsqueeze(0)
+if "image_patches_indices" in inputs:
+    inputs['image_patches_indices'] = inputs['image_patches_indices'][0][:-1].unsqueeze(0)
+inputs = inputs.to(f"cuda:0")
+```
+
+Finally, let us generate the responses from the model
+```python
+with torch.inference_mode():
+    output_ids = model.generate(
+        **inputs,
+        do_sample=True if temperature > 0 else False,
+        temperature=temperature,
+        max_new_tokens=max_new_tokens,
+        use_cache=True,
+        eos_token_id=tokenizer.encode('<|eot_id|>'),
+    )
+
+outputs = processor.batch_decode(output_ids, skip_special_tokens=True)
+```
 
 <a name="dataset"/>
 
@@ -103,12 +170,6 @@ Conversation format follows standard Llama3 as follows.
 
 Describe the content in the image.<|eot_id|><|start_header_id|>assistant<|end_header_id|>
 ```
-
-<a name="inference"/>
-
-## 🧠 Inference
-How to perform the one pass inference. Refer test_dragonfly.py
-
 
 <a name="bibtex"/>
 

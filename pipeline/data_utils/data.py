@@ -8,7 +8,7 @@ import base64
 import urllib
 from dataclasses import dataclass
 from multiprocessing import Value
-from src.dragonfly.models.dragonfly.processing_dragonfly import DragonflyProcessor
+from src.dragonfly.models.processing_dragonfly import DragonflyProcessor
 from functools import partial
 
 import numpy as np
