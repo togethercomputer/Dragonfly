@@ -32,7 +32,7 @@ Recent advances in large multimodal models (LMMs) suggest that higher image reso
 
 ## 💿 Installation
 
-Clone this repository and navigate to LLaVA folder
+Clone this repository and navigate to Dragonfly folder
 ```bash
 git clone https://github.com/togethercomputer/Dragonfly.git
 cd Dragonfly
@@ -83,12 +83,12 @@ from pipeline.train.train_utils import random_seed
 
 Instantiate the tokenizer, processor, and model. 
 ```python
-tokenizer = AutoTokenizer.from_pretrained("togethercomputer/Dragonfly-med-v1-llama8b")
+tokenizer = AutoTokenizer.from_pretrained("togethercomputer/Dragonfly-v1-llama8b")
 clip_processor = AutoProcessor.from_pretrained('openai/clip-vit-base-patch32')
 image_processor = clip_processor.image_processor
 processor = DragonflyProcessor(image_processor=image_processor, tokenizer=tokenizer, image_encoding_style='llava-hd')
 model = DragonflyForCausalLM.from_pretrained(
-    "togethercomputer/Dragonfly-med-v1-llama8b"
+    "togethercomputer/Dragonfly-v1-llama8b"
 )
 model = model.to(torch.bfloat16)
 model = model.to("cuda:0")
