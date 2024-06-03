@@ -126,8 +126,8 @@ outputs = processor.batch_decode(output_ids, skip_special_tokens=True)
 ```
 
 An example response.
-```python
-"The image shows a skate park with a man performing a trick on his skateboard. He is in mid-air, with his skateboard flipping beneath him. The skate park is surrounded by a fence, and there are trees and a building in the background. There are also several people watching the man's performance."
+```plaintext
+"The image features a man performing a trick on a skateboard. He is in mid-air, with his skateboard flipping beneath him. The scene is set in a skate park, with a concrete ramp and a metal fence visible in the background. There are also several people watching the skateboarder's performance."
 ```
 
 <a name="dataset"/>

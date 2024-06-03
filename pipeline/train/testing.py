@@ -28,7 +28,7 @@ image_path = "./test_images/skateboard.png"
 
 
 device = 0
-temperature = 0.2
+temperature = 0
 max_new_tokens = 64
 
 
