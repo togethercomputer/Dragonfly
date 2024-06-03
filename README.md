@@ -60,7 +60,7 @@ pip install --upgrade -e .
 
 *Note: These models are released under Creative Commons Attribution Non Commercial 4.0*
 
-We release two huggingface model checkpoints: `togethercomputer/Dragonfly-med-v1-llama8b` and `togethercomputer/Dragonfly-v1-llama8b`. Please follow the script `pipeline/train/testing.py` for more details. We provide a brief description on how to use them below.
+We release two huggingface model checkpoints: `togethercomputer/Dragonfly-med-v1-llama8b` and `togethercomputer/Dragonfly-v1-llama8b`. Please follow the script `test_dragonfly.py` for more details. We provide a brief description on how to use them below.
 
 <a name="inference"/>
 
@@ -68,27 +68,30 @@ We release two huggingface model checkpoints: `togethercomputer/Dragonfly-med-v1
 
 If you have successfully completed the [Installation](#installation) process, then you should be able to follow the steps below. 
 
-We provide two test examples inside `pipeline/train/test_images`. 
+We provide two test examples inside `test_images`. 
 
 Load necessary packages
 ```python
 import sys
-from PIL import Image
-import torch
 from dragonfly.models.modeling_dragonfly import *
 from dragonfly.models.processing_dragonfly import *
 from transformers import AutoProcessor, AutoTokenizer
+from PIL import Image
+import torch
+from pipeline.train.train_utils import random_seed
 ```
 
 Instantiate the tokenizer, processor, and model. 
 ```python
-tokenizer = AutoTokenizer.from_pretrained("togethercomputer/Dragonfly-v1-llama8b")
+tokenizer = AutoTokenizer.from_pretrained("togethercomputer/Dragonfly-med-v1-llama8b")
 clip_processor = AutoProcessor.from_pretrained('openai/clip-vit-base-patch32')
 image_processor = clip_processor.image_processor
-processor = DragonflyProcessor(image_processor=image_processor, tokenizer=tokenizer, image_encoding_style="llava-hd")
-model = DragonflyForCausalLM.from_pretrained("togethercomputer/Dragonfly-v1-llama8b")
+processor = DragonflyProcessor(image_processor=image_processor, tokenizer=tokenizer, image_encoding_style='llava-hd')
+model = DragonflyForCausalLM.from_pretrained(
+    "togethercomputer/Dragonfly-med-v1-llama8b"
+)
 model = model.to(torch.bfloat16)
-model = model.to(f"cuda:0")
+model = model.to("cuda:0")
 ```
 
 Now, lets load the image and process them.
@@ -98,36 +101,31 @@ image = image.convert('RGB')
 images = [image]
 # images = None # if you do not want to pass any images
 
-question = "are the lungs normal appearing?"
-text_prompt = format_text(question)
-inputs = processor(text=[text_prompt], images=[image], max_length=1024, return_tensors="pt")
-inputs['input_ids'] = inputs['input_ids'][0][:-1].unsqueeze(0)
-inputs['attention_mask'] = inputs['attention_mask'][0][:-1].unsqueeze(0)
-if "image_patches_indices" in inputs:
-    inputs['image_patches_indices'] = inputs['image_patches_indices'][0][:-1].unsqueeze(0)
+text_prompt = "<|start_header_id|>user<|end_header_id|>\n\nSummarize the visual content of the image.<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n"
+inputs = processor(text=[text_prompt], images=[image], max_length=2048, return_tensors="pt", is_generate=True)
 inputs = inputs.to(f"cuda:0")
 ```
 
 Finally, let us generate the responses from the model
 ```python
-temperature = 0.2
-max_new_tokens = 64
+temperature = 0
 with torch.inference_mode():
-    output_ids = model.generate(
-        **inputs,
-        do_sample=True if temperature > 0 else False,
-        temperature=temperature,
-        max_new_tokens=max_new_tokens,
-        use_cache=True,
-        eos_token_id=tokenizer.encode('<|eot_id|>'),
-    )
-
-outputs = processor.batch_decode(output_ids, skip_special_tokens=True)
+    generation_output = model.generate(**inputs, 
+                                        max_new_tokens=1024,
+                                        eos_token_id=tokenizer.encode('<|eot_id|>'), 
+                                        do_sample=temperature > 0, 
+                                        temperature=temperature,
+                                        use_cache=True)
+generation_text = processor.batch_decode(generation_output, skip_special_tokens=False)
 ```
 
 An example response.
 ```plaintext
-"The image features a man performing a trick on a skateboard. He is in mid-air, with his skateboard flipping beneath him. The scene is set in a skate park, with a concrete ramp and a metal fence visible in the background. There are also several people watching the skateboarder's performance."
+In the heart of a vibrant skatepark, a skateboarder is caught in a moment of pure exhilaration. The skateboarder, dressed in a black t-shirt adorned with a yellow graphic and black pants, is suspended in mid-air, performing an impressive trick on a concrete ramp. The skateboarder's arms are outstretched, adding balance to the daring stunt.
+
+The skatepark itself is a concrete playground, with the skateboarder's ramp being the main focus. In the background, palm trees sway gently, adding a touch of nature to the urban setting. A few spectators can be seen in the distance, their attention riveted on the airborne skateboarder.
+
+The image captures not just a moment, but a story of skill, courage, and the joy of skateboarding.<|eot_id|>
 ```
 
 <a name="dataset"/>
