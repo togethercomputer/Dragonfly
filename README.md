@@ -99,9 +99,7 @@ For both stages, the dataset is formatted in the following manner:
 Conversation format follows standard Llama3 as follows. 
 
 ```plaintext
-<|begin_of_text|><|start_header_id|>system<|end_header_id|>
-
-You are a helpful AI assistant for travel tips and recommendations<|eot_id|><|start_header_id|>user<|end_header_id|>
+<|start_header_id|>user<|end_header_id|>
 
 Describe the content in the image.<|eot_id|><|start_header_id|>assistant<|end_header_id|>
 ```
