@@ -103,7 +103,7 @@ Conversation format follows standard Llama3 as follows.
 
 You are a helpful AI assistant for travel tips and recommendations<|eot_id|><|start_header_id|>user<|end_header_id|>
 
-What can you help me with?<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+Describe the content in the image.<|eot_id|><|start_header_id|>assistant<|end_header_id|>
 ```
 
 <a name="inference"/>
