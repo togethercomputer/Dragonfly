@@ -182,4 +182,4 @@ TODO
 
 ## 🪪 License
 
-[MIT License](LICENSE)
+[CC BY-NC 4.0](LICENSE)
