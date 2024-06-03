@@ -33,8 +33,8 @@ torch.backends.cuda.enable_flash_sdp(True)
 
 # For biomed
 pretrained_model_name_or_path = "togethercomputer/Dragonfly-med-v1-llama8b"
-image_path = "./test_images/chext-xray.jpeg"
-question = "are the lungs normal appearing?"
+image_path = "./test_images/ROCO_04197.jpg"
+question = "Provide a brief description of the given image."
 
 def main():
 

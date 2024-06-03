@@ -70,6 +70,8 @@ If you have successfully completed the [Installation](#installation) process, th
 
 We provide two test examples inside `test_images`. 
 
+![Skateboard](test_images/skateboard.png)
+
 Load necessary packages
 ```python
 import sys
