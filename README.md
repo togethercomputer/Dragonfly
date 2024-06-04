@@ -7,8 +7,8 @@
 - [Our paper](todo) is out on arxiv.
 - Check out [our blogpost](todo).
 - Our model checkpoints are out on huggingface 🤗 🚀: 
-    - General: `togethercomputer/Dragonfly-v1-llama8b` 
-    - Biomed: `togethercomputer/Dragonfly-med-v1-llama8b`
+    - General: `togethercomputer/Llama-3-8B-Dragonfly-v1` 
+    - Biomed: `togethercomputer/Llama-3-8B-Dragonfly-Med-v1`
 
 
 ## 📖 Introduction
