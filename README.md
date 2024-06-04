@@ -58,7 +58,7 @@ pip install --upgrade -e .
 
 ## 🏁 Checkpoint
 
-*Note: These models are released under Creative Commons Attribution Non Commercial 4.0*
+*Note: These models are released under [Llama 3 Community License Agreement](LICENSE)*
 
 We release two huggingface model checkpoints: [`togethercomputer/Llama-3-8B-Dragonfly-v1`](https://huggingface.co/togethercomputer/Llama-3-8B-Dragonfly-v1) and [`togethercomputer/Llama-3-8B-Dragonfly-Med-v1`](https://huggingface.co/togethercomputer/Llama-3-8B-Dragonfly-Med-v1). Please follow the script [`test_dragonfly.py`](test_dragonfly.py) for more details. We provide a brief description on how to use them below.
 
