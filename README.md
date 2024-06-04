@@ -87,12 +87,12 @@ from pipeline.train.train_utils import random_seed
 
 Instantiate the tokenizer, processor, and model. 
 ```python
-tokenizer = AutoTokenizer.from_pretrained("togethercomputer/Dragonfly-v1-llama8b")
+tokenizer = AutoTokenizer.from_pretrained("togethercomputer/Llama-3-8B-Dragonfly-v1")
 clip_processor = AutoProcessor.from_pretrained('openai/clip-vit-base-patch32')
 image_processor = clip_processor.image_processor
 processor = DragonflyProcessor(image_processor=image_processor, tokenizer=tokenizer, image_encoding_style='llava-hd')
 model = DragonflyForCausalLM.from_pretrained(
-    "togethercomputer/Dragonfly-v1-llama8b"
+    "togethercomputer/Llama-3-8B-Dragonfly-v1"
 )
 model = model.to(torch.bfloat16)
 model = model.to("cuda:0")
