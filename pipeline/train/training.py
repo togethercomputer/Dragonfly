@@ -36,8 +36,8 @@ from pipeline.train.train_utils import (
     get_next_dataloader,
     save_checkpoint_weights,
 )
-from src.dragonfly.models.dragonfly.modeling_dragonfly import DragonflyForCausalLM, DragonflyConfig
-from src.dragonfly.models.dragonfly.processing_dragonfly import (
+from src.dragonfly.models.modeling_dragonfly import DragonflyForCausalLM, DragonflyConfig
+from src.dragonfly.models.processing_dragonfly import (
     DragonflyProcessor,
     IMAGE_NEWLINE_TOKEN,
     IMAGE_PLACEHOLDER_TOKEN,

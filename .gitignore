@@ -1,4 +1,6 @@
 condaenv*
 **__pycache__**
 scratch*
-
+*.DS_Store*
+build
+src/dragonfly.egg-info
