@@ -17,15 +17,6 @@
 
 Recent advances in large multimodal models (LMMs) suggest that higher image resolution enhances the fine-grained understanding of image details, crucial for tasks such as visual commonsense reasoning and analyzing biomedical images. However, increasing input resolution poses two main challenges: 1) It extends the context length required by the language model, leading to inefficiencies and hitting the model's context limit; 2) It increases the complexity of visual features, necessitating more training data or more complex architecture. We introduce Dragonfly, a new LMM architecture that enhances fine-grained visual understanding and reasoning about image regions to address these challenges. Dragonfly employs two key strategies: multi-resolution visual encoding and zoom-in patch selection. These strategies allow the model to process high-resolution images efficiently while maintaining reasonable context length. Our experiments on eight popular benchmarks demonstrate that Dragonfly achieves competitive or better performance compared to other architectures, highlighting the effectiveness of our design. Additionally, we finetuned Dragonfly on biomedical instructions, achieving state-of-the-art results on multiple biomedical tasks requiring fine-grained visual understanding, including 92.3% accuracy on the Path-VQA dataset (compared to 83.3% for Med-Gemini) and the highest reported results on biomedical image captioning. To support model training, we curated a visual instruction-tuning dataset with 5.5 million image-instruction samples in the general domain and 1.4 million samples in the biomedical domain. We also conducted ablation studies to characterize the impact of various architectural designs and image resolutions, providing insights for future research on visual instruction alignment.
 
-## 🏆 Credits
-
-We would like to acknowledge the following resources that were instrumental in the development of Dragonfly:
-
-- [META LLAMA 3](https://huggingface.co/meta-llama/Meta-Llama-3-8B): We utilized the Llama3 model as our foundational language model.
-- Our codebase is built upon the following two codebases:
-  - [Otter: A Multi-Modal Model with In-Context Instruction Tuning](https://github.com/Luodian/Otter)
-  - [LLaVA-UHD: an LMM Perceiving Any Aspect Ratio and High-Resolution Images](https://github.com/thunlp/LLaVA-UHD)
-
 
 # 📖 Table of Contents
 1. [Installation](#installation)
@@ -188,6 +179,16 @@ Conversation format follows standard Llama3 as follows.
 
 Describe the content in the image.<|eot_id|><|start_header_id|>assistant<|end_header_id|>
 ```
+
+
+## 🏆 Credits
+
+We would like to acknowledge the following resources that were instrumental in the development of Dragonfly:
+
+- [META LLAMA 3](https://huggingface.co/meta-llama/Meta-Llama-3-8B): We utilized the Llama3 model as our foundational language model.
+- Our codebase is built upon the following two codebases:
+  - [Otter: A Multi-Modal Model with In-Context Instruction Tuning](https://github.com/Luodian/Otter)
+  - [LLaVA-UHD: an LMM Perceiving Any Aspect Ratio and High-Resolution Images](https://github.com/thunlp/LLaVA-UHD)
 
 <a name="bibtex"/>
 
