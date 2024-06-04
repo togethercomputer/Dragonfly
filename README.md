@@ -60,7 +60,7 @@ pip install --upgrade -e .
 
 *Note: These models are released under Creative Commons Attribution Non Commercial 4.0*
 
-We release two huggingface model checkpoints: `togethercomputer/Dragonfly-med-v1-llama8b` and `togethercomputer/Dragonfly-v1-llama8b`. Please follow the script `test_dragonfly.py` for more details. We provide a brief description on how to use them below.
+We release two huggingface model checkpoints: `togethercomputer/Llama-3-8B-Dragonfly-v1` and `togethercomputer/Llama-3-8B-Dragonfly-Med-v1`. Please follow the script `test_dragonfly.py` for more details. We provide a brief description on how to use them below.
 
 <a name="inference"/>
 
@@ -69,6 +69,8 @@ We release two huggingface model checkpoints: `togethercomputer/Dragonfly-med-v1
 If you have successfully completed the [Installation](#installation) process, then you should be able to follow the steps below. 
 
 We provide two test examples inside `test_images`. 
+
+Question: Summarize the visual content of the image.
 
 ![Skateboard](test_images/skateboard.png)
 

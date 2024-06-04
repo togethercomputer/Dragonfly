@@ -27,12 +27,12 @@ torch.backends.cudnn.allow_tf32 = True
 torch.backends.cuda.enable_flash_sdp(True)
 
 # set your model name and image path
-# pretrained_model_name_or_path = "togethercomputer/Dragonfly-v1-llama8b"
+# pretrained_model_name_or_path = "togethercomputer/Llama-3-8B-Dragonfly-v1"
 # image_path = "./test_images/skateboard.png"
 # question = "Summarize the visual content of the image."
 
 # For biomed
-pretrained_model_name_or_path = "togethercomputer/Dragonfly-med-v1-llama8b"
+pretrained_model_name_or_path = "togethercomputer/togethercomputer/Llama-3-8B-Dragonfly-Med-v1"
 image_path = "./test_images/ROCO_04197.jpg"
 question = "Provide a brief description of the given image."
 
