@@ -198,4 +198,4 @@ Describe the content in the image.<|eot_id|><|start_header_id|>assistant<|end_he
 
 ## 🪪 License
 
-[CC BY-NC 4.0](LICENSE)
+[META LLAMA 3](LICENSE-Meta-Llama3)
