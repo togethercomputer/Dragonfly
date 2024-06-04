@@ -185,7 +185,14 @@ Describe the content in the image.<|eot_id|><|start_header_id|>assistant<|end_he
 ## 📚 BibTeX
 
 ```bibtex
-TODO
+@misc{chen2024dragonfly,
+      title={Dragonfly: Multi-Resolution Zoom Supercharges Large Visual-Language Model}, 
+      author={Kezhen Chen and Rahul Thapa and Rahul Chalamala and Ben Athiwaratkun and Shuaiwen Leon Song and James Zou},
+      year={2024},
+      eprint={2406.00977},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}
 ```
 <a name="license"/>
 
