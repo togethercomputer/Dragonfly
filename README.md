@@ -4,7 +4,7 @@
 </div>
 
 ## 🔥 News
-- [Our paper](todo) is out on arxiv.
+- [Our paper](https://arxiv.org/abs/2406.00977) is out on arxiv.
 - Check out [our blogpost](todo).
 - Our model checkpoints are out on huggingface 🤗 🚀: 
     - General: `togethercomputer/Llama-3-8B-Dragonfly-v1` 
