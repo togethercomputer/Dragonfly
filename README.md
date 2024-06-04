@@ -209,4 +209,4 @@ We would like to acknowledge the following resources that were instrumental in t
 
 ## 🪪 License
 
-[META LLAMA 3](LICENSE-Meta-Llama3)
+[META LLAMA 3](LICENSE)
