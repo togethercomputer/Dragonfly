@@ -1,6 +1,6 @@
 import json
-from setuptools import setup, find_packages
 
+from setuptools import find_packages, setup
 
 with open("requirements.txt") as f:
     requirements = f.read().splitlines()
@@ -25,5 +25,5 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
     ],
-    python_requires='>=3.9',
+    python_requires=">=3.9",
 )
