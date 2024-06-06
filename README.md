@@ -32,12 +32,6 @@ Recent advances in large multimodal models (LMMs) suggest that higher image reso
 
 ## 💿 Installation
 
-Clone this repository and navigate to Dragonfly folder
-```bash
-git clone https://github.com/togethercomputer/Dragonfly.git
-cd Dragonfly
-```
-
 Create a conda environment and install necessary packages
 ```bash
 conda env create -f environment.yml
@@ -76,50 +70,49 @@ Question: Summarize the visual content of the image.
 
 Load necessary packages
 ```python
-import sys
-from dragonfly.models.modeling_dragonfly import *
-from dragonfly.models.processing_dragonfly import *
-from transformers import AutoProcessor, AutoTokenizer
-from PIL import Image
 import torch
+from PIL import Image
+from transformers import AutoProcessor, AutoTokenizer
+
+from dragonfly.models.modeling_dragonfly import DragonflyForCausalLM
+from dragonfly.models.processing_dragonfly import DragonflyProcessor
 from pipeline.train.train_utils import random_seed
 ```
 
 Instantiate the tokenizer, processor, and model. 
 ```python
+device = torch.device("cuda:0")
+
 tokenizer = AutoTokenizer.from_pretrained("togethercomputer/Llama-3-8B-Dragonfly-v1")
-clip_processor = AutoProcessor.from_pretrained('openai/clip-vit-base-patch32')
+clip_processor = AutoProcessor.from_pretrained("openai/clip-vit-base-patch32")
 image_processor = clip_processor.image_processor
-processor = DragonflyProcessor(image_processor=image_processor, tokenizer=tokenizer, image_encoding_style='llava-hd')
-model = DragonflyForCausalLM.from_pretrained(
-    "togethercomputer/Llama-3-8B-Dragonfly-v1"
-)
+processor = DragonflyProcessor(image_processor=image_processor, tokenizer=tokenizer, image_encoding_style="llava-hd")
+
+model = DragonflyForCausalLM.from_pretrained("togethercomputer/Llama-3-8B-Dragonfly-v1")
 model = model.to(torch.bfloat16)
-model = model.to("cuda:0")
+model = model.to(device)
 ```
 
 Now, lets load the image and process them.
 ```python
 image = Image.open("./test_images/skateboard.png")
-image = image.convert('RGB')
+image = image.convert("RGB")
 images = [image]
-# images = None # if you do not want to pass any images
+# images = [None] # if you do not want to pass any images
 
 text_prompt = "<|start_header_id|>user<|end_header_id|>\n\nSummarize the visual content of the image.<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n"
-inputs = processor(text=[text_prompt], images=[image], max_length=2048, return_tensors="pt", is_generate=True)
-inputs = inputs.to("cuda:0")
+
+inputs = processor(text=[text_prompt], images=images, max_length=2048, return_tensors="pt", is_generate=True)
+inputs = inputs.to(device)
 ```
 
 Finally, let us generate the responses from the model
 ```python
 temperature = 0
+
 with torch.inference_mode():
-    generation_output = model.generate(**inputs, 
-                                        max_new_tokens=1024,
-                                        eos_token_id=tokenizer.encode('<|eot_id|>'), 
-                                        do_sample=temperature > 0, 
-                                        temperature=temperature,
-                                        use_cache=True)
+    generation_output = model.generate(**inputs, max_new_tokens=1024, eos_token_id=tokenizer.encode("<|eot_id|>"), do_sample=temperature > 0, temperature=temperature, use_cache=True)
+
 generation_text = processor.batch_decode(generation_output, skip_special_tokens=False)
 ```
 
