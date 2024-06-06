@@ -274,12 +274,6 @@ def parse_args():
     return parser
 
 
-def random_seed(seed=42, rank=0):
-    torch.manual_seed(seed + rank)
-    np.random.seed(seed + rank)
-    random.seed(seed + rank)
-
-
 def train_one_epoch(
     args,
     model,

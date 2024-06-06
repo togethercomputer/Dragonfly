@@ -39,7 +39,6 @@ NUM_BACKUP_SPLIT = 5000
 N_CHANNELS = 3
 INTERLEAVED_IMAGE_SIZE = 224
 MIN_KB = 10
-MAX_NUM_IMAGES = 5
 
 IMAGE_CAP_INSTRUCT = [
     'Analyze the image in a comprehensive and detailed manner.',
