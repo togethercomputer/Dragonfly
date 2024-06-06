@@ -107,7 +107,7 @@ images = [image]
 
 text_prompt = "<|start_header_id|>user<|end_header_id|>\n\nSummarize the visual content of the image.<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n"
 inputs = processor(text=[text_prompt], images=[image], max_length=2048, return_tensors="pt", is_generate=True)
-inputs = inputs.to(f"cuda:0")
+inputs = inputs.to("cuda:0")
 ```
 
 Finally, let us generate the responses from the model
