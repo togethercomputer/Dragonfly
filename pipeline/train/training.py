@@ -4,8 +4,8 @@ import argparse
 import gc
 import glob
 import os
-import shutil
 import random
+import shutil
 import sys
 import time
 from functools import partial
@@ -14,33 +14,40 @@ from itertools import cycle
 import numpy as np
 import torch
 import torch.nn
+import wandb
 from accelerate import Accelerator, load_checkpoint_and_dispatch
 from tqdm import tqdm
 from transformers import (
+    AutoProcessor,
+    AutoTokenizer,
     get_constant_schedule_with_warmup,
     get_cosine_schedule_with_warmup,
     get_linear_schedule_with_warmup,
-    AutoTokenizer,
-    AutoProcessor
 )
-import wandb
 
 sys.path.append("../..")
-from pipeline.data_utils.data import load_dragonfly_pretrain_dataset, prepare_dragonfly_sample, load_dragonfly_val_dataset
+from pipeline.data_utils.data import (
+    load_dragonfly_pretrain_dataset,
+    load_dragonfly_val_dataset,
+    prepare_dragonfly_sample,
+)
 from pipeline.train.distributed import world_info_from_env
 from pipeline.train.train_utils import (
     AverageMeter,
-    random_seed,
     delete_tensors_from_dict,
-    save_final_weights,
     get_next_dataloader,
+    random_seed,
     save_checkpoint_weights,
+    save_final_weights,
 )
-from src.dragonfly.models.modeling_dragonfly import DragonflyForCausalLM, DragonflyConfig
+from src.dragonfly.models.modeling_dragonfly import (
+    DragonflyConfig,
+    DragonflyForCausalLM,
+)
 from src.dragonfly.models.processing_dragonfly import (
-    DragonflyProcessor,
     IMAGE_NEWLINE_TOKEN,
     IMAGE_PLACEHOLDER_TOKEN,
+    DragonflyProcessor,
 )
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -57,8 +64,10 @@ torch.backends.cuda.enable_flash_sdp(True)
 
 def get_grouped_params(model, wd):
     params_with_wd, params_without_wd = [], []
+
     def apply_decay(x):
         return "weight" in x and "layernorm" not in x and "lm_head" not in x and "embed_tokens" not in x
+
     for n, p in model.named_parameters():
         if p.requires_grad:
             if apply_decay(n):
@@ -114,7 +123,7 @@ def parse_args():
     parser.add_argument(
         "--together_hq_datasets",
         type=str,
-        default='cc3m,llava_pretrain,shareGPT4V',
+        default="cc3m,llava_pretrain,shareGPT4V",
         help="high quality dataset with images saved locally",
     )
     parser.add_argument(
@@ -138,7 +147,7 @@ def parse_args():
     parser.add_argument(
         "--hq_dataset_prob",
         type=float,
-        default=1.,
+        default=1.0,
         help="hq and lq dataset weights",
     )
     parser.add_argument(
@@ -176,11 +185,7 @@ def parse_args():
         default=3,
         help="Total checkpoints to save",
     )
-    parser.add_argument(
-        "--save_hf_checkpoints", 
-        action="store_true", 
-        help="Saving huggingface style checkpoints"
-    )
+    parser.add_argument("--save_hf_checkpoints", action="store_true", help="Saving huggingface style checkpoints")
     parser.add_argument(
         "--total_hf_checkpoint_limits",
         type=int,
@@ -224,8 +229,8 @@ def parse_args():
     )
     parser.add_argument("--mm_tune_vision_encoder", default=False, action="store_true")
     parser.add_argument("--tune_vision_embed_tokens_only", default=False, action="store_true")
-    parser.add_argument("--loss_multiplier_ce", type=float, default=1.)
-    parser.add_argument("--loss_multiplier_ic", type=float, default=0.)
+    parser.add_argument("--loss_multiplier_ce", type=float, default=1.0)
+    parser.add_argument("--loss_multiplier_ic", type=float, default=0.0)
     parser.add_argument("--warmup_steps", default=1000, type=int)
     parser.add_argument("--warmup_steps_ratio", default=None, type=float)
     parser.add_argument("--weight_decay", default=0.1, type=float)
@@ -272,12 +277,6 @@ def parse_args():
         help="save checkpoints to wandb",
     )
     return parser
-
-
-def random_seed(seed=42, rank=0):
-    torch.manual_seed(seed + rank)
-    np.random.seed(seed + rank)
-    random.seed(seed + rank)
 
 
 def train_one_epoch(
@@ -335,9 +334,9 @@ def train_one_epoch(
         if global_step <= 1:
             # for k, v in batch.items():
             #     print(v)
-            print(batch['input_ids'].tolist())
-            print(batch['input_ids'].size())
-        
+            print(batch["input_ids"].tolist())
+            print(batch["input_ids"].size())
+
         #### FORWARD PASS ####
         with accelerator.accumulate(model):
             model_inputs = {}
@@ -345,66 +344,66 @@ def train_one_epoch(
                 if v is None:
                     model_inputs[k] = None
                 elif isinstance(v, torch.Tensor):
-                    model_inputs[k] = v.to('cuda')
+                    model_inputs[k] = v.to("cuda")
                 else:
-                    model_inputs[k] = [vv.to('cuda') for vv in v]
+                    model_inputs[k] = [vv.to("cuda") for vv in v]
 
             with accelerator.autocast():
                 model_outputs = model(**model_inputs)
-                total_loss = model_outputs['loss']
+                total_loss = model_outputs["loss"]
 
             #### BACKWARD ####
             accelerator.backward(total_loss)
 
             text_batch = None
-            if text_dataloader is not None and (global_step+1) % alternate_step == 0:
+            if text_dataloader is not None and (global_step + 1) % alternate_step == 0:
                 text_batch = next(text_dataloader)
                 if global_step < 10:
-                    print(text_batch['input_ids'].tolist())
+                    print(text_batch["input_ids"].tolist())
                 model_text_inputs = {}
                 for k, v in text_batch.items():
                     if v is None:
                         model_text_inputs[k] = None
                     elif isinstance(v, torch.Tensor):
-                        model_text_inputs[k] = v.to('cuda')
+                        model_text_inputs[k] = v.to("cuda")
                     else:
-                        model_text_inputs[k] = [vv.to('cuda') for vv in v]
-                        
+                        model_text_inputs[k] = [vv.to("cuda") for vv in v]
+
                 with accelerator.autocast():
                     model_text_outputs = model(**model_text_inputs)
-                    text_total_loss = model_text_outputs['loss']
-                
+                    text_total_loss = model_text_outputs["loss"]
+
                 #### BACKWARD ####
                 accelerator.backward(text_total_loss)
 
-                total_loss = (total_loss + text_total_loss) / 2.
+                total_loss = (total_loss + text_total_loss) / 2.0
                 delete_tensors_from_dict(text_batch)
 
             math_batch = None
-            if math_dataloader is not None and (global_step+1) % math_alternate_step == 0:
+            if math_dataloader is not None and (global_step + 1) % math_alternate_step == 0:
                 math_batch = next(math_dataloader)
                 if global_step < 40:
-                    print(math_batch['input_ids'].tolist())
+                    print(math_batch["input_ids"].tolist())
                 model_math_inputs = {}
                 for k, v in math_batch.items():
                     if v is None:
                         model_math_inputs[k] = None
                     elif isinstance(v, torch.Tensor):
-                        model_math_inputs[k] = v.to('cuda')
+                        model_math_inputs[k] = v.to("cuda")
                     else:
-                        model_math_inputs[k] = [vv.to('cuda') for vv in v]
+                        model_math_inputs[k] = [vv.to("cuda") for vv in v]
 
                 with accelerator.autocast():
                     model_math_outputs = model(**model_math_inputs)
-                    math_total_loss = model_math_outputs['loss']
+                    math_total_loss = model_math_outputs["loss"]
 
                 #### BACKWARD ####
                 accelerator.backward(math_total_loss)
 
-                total_loss = (total_loss + math_total_loss) / 2.
+                total_loss = (total_loss + math_total_loss) / 2.0
 
                 delete_tensors_from_dict(math_batch)
-            
+
             def mask_embedding(m):
                 if m.weight.requires_grad:
                     zero_mask = torch.zeros_like(m.weight.grad)
@@ -526,7 +525,7 @@ def train_one_epoch(
                         shutil.rmtree(delete_checkpoint_path)
         except:
             print("Save HF checkpoint Error.")
-            
+
     return global_step
 
 
@@ -551,7 +550,7 @@ def main():
     device_id = accelerator.device
 
     random_seed(args.seed)
-    
+
     if args.pretrained_model_name_or_path is not None:
         accelerator.print(f"Loading pretrained moel from {args.pretrained_model_name_or_path}")
         device_map = {"": device_id} if accelerator.distributed_type == "MULTI_GPU" or accelerator.distributed_type == "DEEPSPEED" else "auto"
@@ -560,7 +559,7 @@ def main():
         tokenizer.eos_token = "<|end_of_text|>"
         tokenizer.add_bos_token = True
         tokenizer.add_eos_token = True
-        tokenizer.padding_side = 'right'
+        tokenizer.padding_side = "right"
         tokenizer.pad_token = tokenizer.eos_token
         if args.image_encoder_name_or_path is not None:
             clip_processor = AutoProcessor.from_pretrained(args.image_encoder_name_or_path)
@@ -568,11 +567,8 @@ def main():
         else:
             image_processor = None
         assert image_processor is not None
-        processor = DragonflyProcessor(image_processor=image_processor, tokenizer=tokenizer, image_encoding_style='llava-hd')
-        model = DragonflyForCausalLM.from_pretrained(
-            args.pretrained_model_name_or_path,
-            **kwargs
-        )
+        processor = DragonflyProcessor(image_processor=image_processor, tokenizer=tokenizer, image_encoding_style="llava-hd")
+        model = DragonflyForCausalLM.from_pretrained(args.pretrained_model_name_or_path, **kwargs)
         args.processor = processor
     else:
         accelerator.print(f"Initialize model from scratch")
@@ -580,7 +576,7 @@ def main():
         tokenizer = AutoTokenizer.from_pretrained(args.text_pretrained_model_name_or_path)
         tokenizer.eos_token = "<|end_of_text|>"
         tokenizer.add_eos_token = True
-        tokenizer.padding_side = 'right'
+        tokenizer.padding_side = "right"
         tokenizer.pad_token = tokenizer.eos_token
         if args.image_encoder_name_or_path is not None:
             clip_processor = AutoProcessor.from_pretrained(args.image_encoder_name_or_path)
@@ -588,15 +584,15 @@ def main():
         else:
             image_processor = None
         assert image_processor is not None
-        processor = DragonflyProcessor(image_processor=image_processor, tokenizer=tokenizer, image_encoding_style='llava-hd')
+        processor = DragonflyProcessor(image_processor=image_processor, tokenizer=tokenizer, image_encoding_style="llava-hd")
         model_config = DragonflyConfig(
-                text_pretrained_model_name_or_path=args.text_pretrained_model_name_or_path,
-                image_encoder=args.image_encoder_name_or_path,
+            text_pretrained_model_name_or_path=args.text_pretrained_model_name_or_path,
+            image_encoder=args.image_encoder_name_or_path,
         )
         model = DragonflyForCausalLM(model_config)
         args.processor = processor
         model.initialize_model()
-    
+
     if args.gradient_checkpointing:
         model.gradient_checkpointing_enable()
 
@@ -658,7 +654,6 @@ def main():
             config=vars(args),
         )
 
-
     accelerator.print("***** Running training *****")
     accelerator.print(f"  High Quality Datasets = {args.together_hq_datasets}")
     accelerator.print(f"  Low Quality Datasets = {args.together_lq_datasets}")
@@ -686,7 +681,7 @@ def main():
         else:
             resume_from_checkpoint_path = sorted(
                 checkpoint_list,
-                key=lambda x: int(x.split("_")[-1]), # steps_<epoch>_<steps>
+                key=lambda x: int(x.split("_")[-1]),  # steps_<epoch>_<steps>
             )[-1]
             # resume_from_checkpoint_path = sorted(checkpoint_list, key=lambda x: int(x.split("_")[-1].split(".")[0]))[-1]
             print(f"Found checkpoint {resume_from_checkpoint_path} for run {args.external_save_dir}.")
@@ -694,8 +689,8 @@ def main():
             if args.rank == 0:
                 print(f"Loading checkpoint from {resume_from_checkpoint_path}")
             accelerator.load_state(resume_from_checkpoint_path)
-            current_global_steps = int(resume_from_checkpoint_path.split('_')[-1]) + 1
-            resume_from_epoch = int(resume_from_checkpoint_path.split('_')[-2])
+            current_global_steps = int(resume_from_checkpoint_path.split("_")[-1]) + 1
+            resume_from_epoch = int(resume_from_checkpoint_path.split("_")[-2])
 
     if accelerator.num_processes > 1:
         lr_scheduler.split_batches = True
@@ -709,7 +704,7 @@ def main():
             break
 
         # dataset.set_epoch(epoch)
-        dataset = dataset.shuffle(seed=args.seed+epoch)
+        dataset = dataset.shuffle(seed=args.seed + epoch)
         dataloader = torch.utils.data.DataLoader(
             dataset,
             batch_size=args.batch_size,
@@ -770,7 +765,7 @@ def main():
                     prepare_dragonfly_sample,
                     processor=processor,
                     max_length=args.max_seq_length,
-                 ),
+                ),
             )
         else:
             val_dataloader = None
