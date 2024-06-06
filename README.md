@@ -5,7 +5,7 @@
 
 ## 🔥 News
 - [Our paper](https://arxiv.org/abs/2406.00977) is out on arxiv.
-- Check out [our blogpost](todo).
+- Check out [our blogpost](https://together-ai.webflow.io/blog/dragonfly-v1).
 - Our model checkpoints are out on huggingface 🤗 🚀: 
     - General: [`togethercomputer/Llama-3-8B-Dragonfly-v1`](https://huggingface.co/togethercomputer/Llama-3-8B-Dragonfly-v1) 
     - Biomed: [`togethercomputer/Llama-3-8B-Dragonfly-Med-v1`](https://huggingface.co/togethercomputer/Llama-3-8B-Dragonfly-Med-v1)
