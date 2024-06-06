@@ -1,15 +1,19 @@
-import re
-import random
 import ast
 import math
-from PIL import Image
+import random
+import re
 from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
-
+from PIL import Image
 from transformers.processing_utils import ProcessorMixin
-from transformers.utils import TensorType, is_torch_available, logging, requires_backends
-from transformers.tokenization_utils_base import TruncationStrategy, PaddingStrategy
+from transformers.tokenization_utils_base import PaddingStrategy, TruncationStrategy
+from transformers.utils import (
+    TensorType,
+    is_torch_available,
+    logging,
+    requires_backends,
+)
 
 if is_torch_available():
     # from .image_processing_fuyu import FuyuBatchFeature
@@ -99,6 +103,7 @@ def construct_full_unpacked_stream(
 
     return all_bi_stream
 
+
 # Vision encoding processing
 def select_best_resolution(original_size, possible_resolutions):
     """
@@ -114,7 +119,7 @@ def select_best_resolution(original_size, possible_resolutions):
     original_width, original_height = original_size
     best_fit = None
     max_effective_resolution = 0
-    min_wasted_resolution = float('inf')
+    min_wasted_resolution = float("inf")
 
     for width, height in possible_resolutions:
         scale = min(width / original_width, height / original_height)
@@ -157,7 +162,7 @@ def resize_and_pad_image(image, target_resolution):
     # Resize the image
     resized_image = image.resize((new_width, new_height))
 
-    new_image = Image.new('RGB', (target_width, target_height), (0, 0, 0))
+    new_image = Image.new("RGB", (target_width, target_height), (0, 0, 0))
     paste_x = (target_width - new_width) // 2
     paste_y = (target_height - new_height) // 2
     new_image.paste(resized_image, (paste_x, paste_y))
@@ -207,10 +212,7 @@ def get_anyres_image_grid_shape(image_size, grid_pinpoints, patch_size):
     return width // patch_size, height // patch_size
 
 
-def process_anyres_image(image,
-                         processor,
-                         shortest_edge=None,
-                         possible_resolutions=[(4,3), (3,4)]):
+def process_anyres_image(image, processor, shortest_edge=None, possible_resolutions=[(4, 3), (3, 4)]):
     """
     Process an image with variable resolutions.
 
@@ -223,14 +225,14 @@ def process_anyres_image(image,
         torch.Tensor: A tensor containing the processed image patches.
     """
     if shortest_edge is None:
-        se = processor.size['shortest_edge']
+        se = processor.size["shortest_edge"]
     else:
         se = shortest_edge
-    middle_resolution = select_best_resolution(image.size, [(2*se, 2*se),(1*se, 4*se), (4*se, 1*se)]) 
+    middle_resolution = select_best_resolution(image.size, [(2 * se, 2 * se), (1 * se, 4 * se), (4 * se, 1 * se)])
     middle_image_padded = image.resize(middle_resolution)
     middle_patches = divide_to_patches(middle_image_padded, se)
 
-    possible_resolutions = [(6*se, 4*se), (4*se, 6*se), (3*se, 8*se), (8*se, 3*se), (2*se, 12*se), (12*se, 2*se)]
+    possible_resolutions = [(6 * se, 4 * se), (4 * se, 6 * se), (3 * se, 8 * se), (8 * se, 3 * se), (2 * se, 12 * se), (12 * se, 2 * se)]
     high_resolution = select_best_resolution(image.size, possible_resolutions)
     high_image_padded = image.resize(high_resolution)
     high_patches = divide_to_patches(high_image_padded, se)
@@ -238,9 +240,8 @@ def process_anyres_image(image,
     image_original_resize = image.resize((se, se))
 
     image_patches = [image_original_resize] + middle_patches + high_patches
-    image_patches = [processor.preprocess(image_patch, return_tensors='pt')['pixel_values'][0]
-                     for image_patch in image_patches]
-    return torch.stack(image_patches, dim=0), [torch.tensor(1.)]
+    image_patches = [processor.preprocess(image_patch, return_tensors="pt")["pixel_values"][0] for image_patch in image_patches]
+    return torch.stack(image_patches, dim=0), [torch.tensor(1.0)]
 
 
 def _replace_string_repr_with_token_tags(prompt: str) -> str:
@@ -356,12 +357,12 @@ def _tokenize_prompts_with_image_and_batch(
     - pad all the sequences to this length so we can convert them into a 3D tensor.
     """
 
-    text_max_length = int(max_length/2)
+    text_max_length = int(max_length / 2)
     # print(text_max_length)
     # If not tool use, tranform the coordinates while tokenizing
     transformed_prompt_tokens = [[tokenizer(prompt, add_special_tokens=True).input_ids for prompt in prompt_seq] for prompt_seq in prompts]
 
-    transformed_prompt_tokens = [[prompt[:text_max_length-1] for prompt in prompt_seq] for prompt_seq in transformed_prompt_tokens]
+    transformed_prompt_tokens = [[prompt[: text_max_length - 1] for prompt in prompt_seq] for prompt_seq in transformed_prompt_tokens]
 
     prompts_tokens = transformed_prompt_tokens
 
@@ -376,7 +377,7 @@ def _tokenize_prompts_with_image_and_batch(
         for token_seq in prompts_tokens:
             token_seq[-1].append(boa)
     else:
-        boa = tokenizer.vocab['<|end_of_text|>']
+        boa = tokenizer.vocab["<|end_of_text|>"]
         # Only add bbox open token to the last subsequence since that is what will be completed
         for token_seq in prompts_tokens:
             token_seq[-1].append(boa)
@@ -449,11 +450,12 @@ class DragonflyProcessor(ProcessorMixin):
         tokenizer ([`LlamaTokenizerFast`]):
             The tokenizer is a required input.
     """
+
     attributes = ["image_processor", "tokenizer"]
     image_processor_class = "AutoImageProcessor"
     tokenizer_class = "AutoTokenizer"
 
-    def __init__(self, image_processor, tokenizer, image_encoding_style='llava-hd'):
+    def __init__(self, image_processor, tokenizer, image_encoding_style="llava-hd"):
         super().__init__(image_processor=image_processor, tokenizer=tokenizer)
         self.image_processor = image_processor
         self.tokenizer = tokenizer
@@ -497,7 +499,7 @@ class DragonflyProcessor(ProcessorMixin):
 
             start = (seq == special_token_id).nonzero(as_tuple=False)[0].squeeze()
             # Unmask the tokens between the first and second occurren
-            labels[i, start + 1:] = seq[start + 1:]
+            labels[i, start + 1 :] = seq[start + 1 :]
 
         return labels
 
@@ -590,7 +592,6 @@ class DragonflyProcessor(ProcessorMixin):
 
         return batched_inputs
 
-
     def get_sample_encoding_with_encoder(
         self,
         pixel_values,
@@ -615,22 +616,17 @@ class DragonflyProcessor(ProcessorMixin):
         )
         # print(prompt_tokens)
         raw_img_emb_len, imgc, imgw, imgh = pixel_values.size()
-        
+
         img_emb_len = IMG_EMB_LENGTH
         image_patch_size = IMAGE_PATCH_SIZE
-        
-        image_newline_idx = [i for i in range(img_emb_len*(1+image_patch_size)) if (i+1) % (image_patch_size+1) == 0]
-        img_input_id_item = torch.full(
-            (img_emb_len*(1+image_patch_size),),
-            image_placeholder_id,
-            dtype=torch.int32,
-            device=pixel_values.device
-        )
+
+        image_newline_idx = [i for i in range(img_emb_len * (1 + image_patch_size)) if (i + 1) % (image_patch_size + 1) == 0]
+        img_input_id_item = torch.full((img_emb_len * (1 + image_patch_size),), image_placeholder_id, dtype=torch.int32, device=pixel_values.device)
         img_input_id_item[image_newline_idx] = image_newline_id
-        image_placeholder_mask =  img_input_id_item == image_placeholder_id
+        image_placeholder_mask = img_input_id_item == image_placeholder_id
 
         img_patch_indices_per_batch_item = torch.full_like(img_input_id_item, -1, dtype=torch.int32, device=pixel_values.device)
-        img_patch_idx = torch.arange(img_emb_len*image_patch_size, dtype=torch.int32, device=pixel_values.device)
+        img_patch_idx = torch.arange(img_emb_len * image_patch_size, dtype=torch.int32, device=pixel_values.device)
         img_patch_indices_per_batch_item[image_placeholder_mask] = img_patch_idx
 
         image_input_ids = [[img_input_id_item for _ in prompt_seq] for prompt_seq in prompt_tokens]
@@ -732,9 +728,9 @@ class DragonflyProcessor(ProcessorMixin):
             # logger.warning("You are processing a text with no associated image. Make sure it is intended.")
             self.current_processor = self.tokenizer
             if type(text) == list:
-                text = [t+"<|end_of_text|>" for t in text]
+                text = [t + "<|end_of_text|>" for t in text]
             else:
-                text = text+"<|end_of_text|>"
+                text = text + "<|end_of_text|>"
             text_encoding = self.tokenizer(
                 text=text,
                 add_special_tokens=True,
@@ -767,10 +763,8 @@ class DragonflyProcessor(ProcessorMixin):
         # --- Preprocess images using self.image_processor ---
 
         # FIXME - We hard code "pt" here because the rest of the processing assumes torch tensors
-        if self.image_encoding_style == 'llava-hd':
-            img_proc_output = [
-                process_anyres_image(image, self.image_processor) for image in images
-            ]
+        if self.image_encoding_style == "llava-hd":
+            img_proc_output = [process_anyres_image(image, self.image_processor) for image in images]
             batch_images = [item[0] for item in img_proc_output]
             scale_factors = [item[1] for item in img_proc_output]
             self.subsequence_length = 1  # Each batch contains only one sequence.
@@ -800,9 +794,9 @@ class DragonflyProcessor(ProcessorMixin):
                 batch_encoding = self._right_pad_inputs_with_attention_mask(model_inputs=all_encodings, return_attention_mask=return_attention_mask)
             else:
                 batch_encoding = self._left_pad_inputs_with_attention_mask(model_inputs=all_encodings, return_attention_mask=return_attention_mask)
-                batch_encoding['input_ids'] = batch_encoding['input_ids'][:, :-1]
-                batch_encoding['image_patches_indices'] = batch_encoding['image_patches_indices'][:, :-1]
-                batch_encoding['attention_mask'] = batch_encoding['attention_mask'][:, :-1]
+                batch_encoding["input_ids"] = batch_encoding["input_ids"][:, :-1]
+                batch_encoding["image_patches_indices"] = batch_encoding["image_patches_indices"][:, :-1]
+                batch_encoding["attention_mask"] = batch_encoding["attention_mask"][:, :-1]
 
             return FuyuBatchFeature(data=batch_encoding)
         else:

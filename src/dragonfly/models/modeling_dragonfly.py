@@ -1,17 +1,20 @@
-import torch
-
-from transformers import PreTrainedModel, AutoModelForCausalLM, PretrainedConfig
-from transformers import AutoModelForCausalLM
-from transformers import CLIPVisionModel
-from transformers.modeling_outputs import BaseModelOutputWithPast
-from transformers import logging
-from transformers import CONFIG_MAPPING
-
 from typing import List, Optional, Tuple, Union
+
+import torch
 import torch.nn as nn
 from torch.nn import functional as F
+from transformers import (
+    CONFIG_MAPPING,
+    AutoModelForCausalLM,
+    CLIPVisionModel,
+    PretrainedConfig,
+    PreTrainedModel,
+    logging,
+)
+from transformers.modeling_outputs import BaseModelOutputWithPast
 
 logger = logging.get_logger(__name__)
+
 
 class DragonflyConfig(PretrainedConfig):
 
@@ -89,7 +92,7 @@ class DragonflyConfig(PretrainedConfig):
         self.rope_theta = rope_theta
         self.attention_dropout = attention_dropout
         self.rope_scaling = rope_scaling
-        self.text_pretrained_model_name_or_path=text_pretrained_model_name_or_path
+        self.text_pretrained_model_name_or_path = text_pretrained_model_name_or_path
         self.image_encoder = image_encoder
         self._rope_scaling_validation()
 
@@ -110,16 +113,11 @@ class DragonflyConfig(PretrainedConfig):
             return
 
         if not isinstance(self.rope_scaling, dict) or len(self.rope_scaling) != 2:
-            raise ValueError(
-                "`rope_scaling` must be a dictionary with with two fields, `type` and `factor`, "
-                f"got {self.rope_scaling}"
-            )
+            raise ValueError("`rope_scaling` must be a dictionary with with two fields, `type` and `factor`, " f"got {self.rope_scaling}")
         rope_scaling_type = self.rope_scaling.get("type", None)
         rope_scaling_factor = self.rope_scaling.get("factor", None)
         if rope_scaling_type is None or rope_scaling_type not in ["linear", "dynamic"]:
-            raise ValueError(
-                f"`rope_scaling`'s type field must be one of ['linear', 'dynamic'], got {rope_scaling_type}"
-            )
+            raise ValueError(f"`rope_scaling`'s type field must be one of ['linear', 'dynamic'], got {rope_scaling_type}")
         if rope_scaling_factor is None or not isinstance(rope_scaling_factor, float) or rope_scaling_factor <= 1.0:
             raise ValueError(f"`rope_scaling`'s factor field must be a float > 1, got {rope_scaling_factor}")
 
@@ -176,16 +174,16 @@ class DragonflyForCausalLM(DragonflyPreTrainedModel):
 
     def set_input_embeddings(self, value):
         self.language_model.set_input_embeddings(value)
-    
+
     def get_language_model(self):
         return self.language_model
-    
+
     def initialize_model(self):
         if hasattr(self.config, "text_pretrained_model_name_or_path"):
             if self.config.text_pretrained_model_name_or_path is not None:
                 language_model_id = self.config.text_pretrained_model_name_or_path
                 self.language_model = AutoModelForCausalLM.from_pretrained(language_model_id, use_flash_attention_2=True)
-        
+
         if hasattr(self.config, "image_encoder"):
             if self.config.image_encoder is not None:
                 print("Initialize Vision Encoder!!")
@@ -244,7 +242,7 @@ class DragonflyForCausalLM(DragonflyPreTrainedModel):
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = True,
         topk: Optional[int] = 3,
-        region_token_interval: Optional[int] = 6
+        region_token_interval: Optional[int] = 6,
     ) -> Union[Tuple, BaseModelOutputWithPast]:
         output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
         output_hidden_states = output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
@@ -281,23 +279,15 @@ class DragonflyForCausalLM(DragonflyPreTrainedModel):
                 # first, lets extract the high resolution image patches and generate embeddings from them using the image encoder
                 # we also project them through the projection layer
                 query_hd_patches = [full_img_patches[5:] for full_img_patches in image_patches]
-                query_outputs = [
-                    self.image_encoder(
-                        patch_pixel_values.to(self.vision_embed_tokens.weight.dtype), output_hidden_states=True
-                    ) for patch_pixel_values in query_hd_patches
-                ]
+                query_outputs = [self.image_encoder(patch_pixel_values.to(self.vision_embed_tokens.weight.dtype), output_hidden_states=True) for patch_pixel_values in query_hd_patches]
                 query_image_patches = [item.hidden_states[-2] for item in query_outputs]
                 query_image_patches = [self.vision_embed_tokens(patch.to(self.vision_embed_tokens.weight.dtype)) for patch in query_image_patches]
-                query_ranks = [torch.mean(query_item,1) for query_item in query_image_patches]
+                query_ranks = [torch.mean(query_item, 1) for query_item in query_image_patches]
 
                 # now, lets extract the low and mid resolution image patches and generate embeddings from them using the image encoder
                 # we similarly project them through the projection layer
                 image_patches = [full_img_patches[:5] for full_img_patches in image_patches]
-                ie_outputs = [
-                    self.image_encoder(
-                        patch_pixel_values.to(self.vision_embed_tokens.weight.dtype), output_hidden_states=True
-                    ).hidden_states[-2] for patch_pixel_values in image_patches
-                ]
+                ie_outputs = [self.image_encoder(patch_pixel_values.to(self.vision_embed_tokens.weight.dtype), output_hidden_states=True).hidden_states[-2] for patch_pixel_values in image_patches]
                 ie_outputs = [self.vision_embed_tokens(patch_pixel_values.to(self.vision_embed_tokens.weight.dtype)) for patch_pixel_values in ie_outputs]
 
                 """Now, for each mid resolution region, we select the top k high resolution regions using 
@@ -305,54 +295,48 @@ class DragonflyForCausalLM(DragonflyPreTrainedModel):
                 are the mean of the high resolution region embeddings and the region embeddings are the 
                 mean of the mid resolution region embeddings
                 """
-                
+
                 # region 1
-                abstract_query1 = [torch.mean(patch_item[1],0) for patch_item in ie_outputs]
-                query_ranks1 =[torch.matmul(qr, abstract.unsqueeze(-1)).squeeze(-1) for qr, abstract in zip(query_ranks, abstract_query1)]
+                abstract_query1 = [torch.mean(patch_item[1], 0) for patch_item in ie_outputs]
+                query_ranks1 = [torch.matmul(qr, abstract.unsqueeze(-1)).squeeze(-1) for qr, abstract in zip(query_ranks, abstract_query1)]
                 query_ranks_mask1 = torch.zeros(query_ranks[0].size()[:-1]).to(query_ranks[0].device)
-                query_ranks_mask1.scatter_(0, torch.arange(region_token_interval,region_token_interval*4).to(query_ranks[0].device), float('-inf'))
+                query_ranks_mask1.scatter_(0, torch.arange(region_token_interval, region_token_interval * 4).to(query_ranks[0].device), float("-inf"))
                 query_ranks1 = [T + query_ranks_mask1 for T in query_ranks1]
                 query_ranks1 = [torch.topk(item, topk).indices for item in query_ranks1]
 
                 # region 2
-                abstract_query2 = [torch.mean(patch_item[2],0) for patch_item in ie_outputs]
+                abstract_query2 = [torch.mean(patch_item[2], 0) for patch_item in ie_outputs]
                 query_ranks2 = [torch.matmul(qr, abstract.unsqueeze(-1)).squeeze(-1) for qr, abstract in zip(query_ranks, abstract_query2)]
                 query_ranks_mask2 = torch.zeros(query_ranks[0].size()[:-1]).to(query_ranks[0].device)
-                query_ranks_mask2.scatter_(0, torch.concat([torch.arange(0,region_token_interval).to(query_ranks[0].device), torch.arange(region_token_interval*2,region_token_interval*4).to(query_ranks[0].device)]), float('-inf'))
+                query_ranks_mask2.scatter_(0, torch.concat([torch.arange(0, region_token_interval).to(query_ranks[0].device), torch.arange(region_token_interval * 2, region_token_interval * 4).to(query_ranks[0].device)]), float("-inf"))
                 query_ranks2 = [T + query_ranks_mask2 for T in query_ranks2]
                 query_ranks2 = [torch.topk(item, topk).indices for item in query_ranks2]
 
                 # region 3
-                abstract_query3 = [torch.mean(patch_item[3],0) for patch_item in ie_outputs]
-                query_ranks3 =[torch.matmul(qr, abstract.unsqueeze(-1)).squeeze(-1) for qr, abstract in zip(query_ranks, abstract_query3)]
-                query_ranks_mask3 = torch.zeros(query_ranks[0].size()[:-1]).to(query_ranks[0].device) # add
-                query_ranks_mask3.scatter_(0, torch.concat([torch.arange(0,region_token_interval*2).to(query_ranks[0].device), torch.arange(region_token_interval*3,region_token_interval*4).to(query_ranks[0].device)]), float('-inf'))  #add
-                query_ranks3 = [T + query_ranks_mask3 for T in query_ranks3] #add
+                abstract_query3 = [torch.mean(patch_item[3], 0) for patch_item in ie_outputs]
+                query_ranks3 = [torch.matmul(qr, abstract.unsqueeze(-1)).squeeze(-1) for qr, abstract in zip(query_ranks, abstract_query3)]
+                query_ranks_mask3 = torch.zeros(query_ranks[0].size()[:-1]).to(query_ranks[0].device)  # add
+                query_ranks_mask3.scatter_(
+                    0, torch.concat([torch.arange(0, region_token_interval * 2).to(query_ranks[0].device), torch.arange(region_token_interval * 3, region_token_interval * 4).to(query_ranks[0].device)]), float("-inf")
+                )  # add
+                query_ranks3 = [T + query_ranks_mask3 for T in query_ranks3]  # add
                 query_ranks3 = [torch.topk(item, topk).indices for item in query_ranks3]
 
                 # region 4
-                abstract_query4 = [torch.mean(patch_item[4],0) for patch_item in ie_outputs]
-                query_ranks4 =[torch.matmul(qr, abstract.unsqueeze(-1)).squeeze(-1) for qr, abstract in zip(query_ranks, abstract_query4)]
-                query_ranks_mask4 = torch.zeros(query_ranks[0].size()[:-1]).to(query_ranks[0].device) # add
-                query_ranks_mask4.scatter_(0, torch.arange(0,region_token_interval*3).to(query_ranks[0].device), float('-inf'))  #add
-                query_ranks4 = [T + query_ranks_mask4 for T in query_ranks4] #add
+                abstract_query4 = [torch.mean(patch_item[4], 0) for patch_item in ie_outputs]
+                query_ranks4 = [torch.matmul(qr, abstract.unsqueeze(-1)).squeeze(-1) for qr, abstract in zip(query_ranks, abstract_query4)]
+                query_ranks_mask4 = torch.zeros(query_ranks[0].size()[:-1]).to(query_ranks[0].device)  # add
+                query_ranks_mask4.scatter_(0, torch.arange(0, region_token_interval * 3).to(query_ranks[0].device), float("-inf"))  # add
+                query_ranks4 = [T + query_ranks_mask4 for T in query_ranks4]  # add
                 query_ranks4 = [torch.topk(item, topk).indices for item in query_ranks4]
 
                 # Construct visual encoding
-                query_ranks = [torch.concat([q1,q2,q3,q4]) for q1,q2,q3,q4 in zip(query_ranks1,query_ranks2,query_ranks3,query_ranks4)]
+                query_ranks = [torch.concat([q1, q2, q3, q4]) for q1, q2, q3, q4 in zip(query_ranks1, query_ranks2, query_ranks3, query_ranks4)]
                 query_ranks = [torch.sort(item).values for item in query_ranks]
-                selected_image_patches = [
-                    torch.index_select(q_image_patches, 0, q_ranks)
-                    for (q_image_patches, q_ranks) in zip(query_image_patches, query_ranks) 
-                ]
+                selected_image_patches = [torch.index_select(q_image_patches, 0, q_ranks) for (q_image_patches, q_ranks) in zip(query_image_patches, query_ranks)]
 
                 # concat
-                patch_embeddings = [
-                    torch.concat([
-                        ie_output.view(-1, self.config.hidden_size),
-                        s_image_patches.view(-1, self.config.hidden_size)
-                    ]) for ie_output, s_image_patches in zip(ie_outputs, selected_image_patches)
-                ]
+                patch_embeddings = [torch.concat([ie_output.view(-1, self.config.hidden_size), s_image_patches.view(-1, self.config.hidden_size)]) for ie_output, s_image_patches in zip(ie_outputs, selected_image_patches)]
 
                 inputs_embeds = self.gather_continuous_embeddings(
                     word_embeddings=inputs_embeds,
@@ -361,14 +345,7 @@ class DragonflyForCausalLM(DragonflyPreTrainedModel):
                 )
 
         outputs = self.language_model(
-            inputs_embeds=inputs_embeds,
-            labels=labels,
-            attention_mask=attention_mask,
-            position_ids=position_ids,
-            past_key_values=past_key_values,
-            output_attentions=output_attentions,
-            use_cache=use_cache,
-            output_hidden_states=True
+            inputs_embeds=inputs_embeds, labels=labels, attention_mask=attention_mask, position_ids=position_ids, past_key_values=past_key_values, output_attentions=output_attentions, use_cache=use_cache, output_hidden_states=True
         )
 
         if not return_dict:

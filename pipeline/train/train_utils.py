@@ -6,11 +6,14 @@ from contextlib import suppress
 
 import numpy as np
 import torch
-from torch.utils.data.distributed import DistributedSampler
 import torch.distributed as dist
+from torch.utils.data.distributed import DistributedSampler
 
 try:
-    from transformers.models.idefics.processing_idefics import image_attention_mask_for_packed_input_ids, incremental_to_binary_attention_mask
+    from transformers.models.idefics.processing_idefics import (
+        image_attention_mask_for_packed_input_ids,
+        incremental_to_binary_attention_mask,
+    )
 except ImportError:
     print("Failed to import Idefics processing module.")
 
@@ -294,6 +297,7 @@ def get_weights_for_dataloaders(dataloaders):
 def get_next_dataloader(dataloader_iterators, weights):
     chosen_dataloader_index = np.random.choice(len(dataloader_iterators), p=weights)
     return dataloader_iterators[chosen_dataloader_index]
+
 
 def get_next_dataloader_torch(dataloaders, weights):
     weights_tensor = torch.tensor(weights, dtype=torch.float)  # Convert weights to a tensor
