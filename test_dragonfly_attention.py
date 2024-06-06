@@ -99,9 +99,7 @@ def main():
         model_outputs = model(**inputs)
         generation_output = model.generate(**inputs, max_new_tokens=1024, eos_token_id=tokenizer.encode("<|eot_id|>"), do_sample=temperature > 0, temperature=temperature, use_cache=True)
     
-
-    # se = image_processor.size["shortest_edge"]
-    se = 224
+    se = image_processor.size["shortest_edge"]
     possible_resolutions = [(6*se, 4*se), (4*se, 6*se), (3*se, 8*se), (8*se, 3*se), (2*se, 12*se), (12*se, 2*se)]
     high_resolution = select_best_resolution(image.size, possible_resolutions)
     high_image_padded = image.resize(high_resolution)
