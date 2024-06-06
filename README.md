@@ -165,7 +165,7 @@ For both stages, the dataset is formatted in the following manner:
 }
 ```
 
-Conversation format follows standard Llama3 as follows. 
+Conversation format follows standard Llama 3 as follows. 
 
 ```plaintext
 <|start_header_id|>user<|end_header_id|>
@@ -178,7 +178,7 @@ Describe the content in the image.<|eot_id|><|start_header_id|>assistant<|end_he
 
 We would like to acknowledge the following resources that were instrumental in the development of Dragonfly:
 
-- [Meta Llama 3](https://huggingface.co/meta-llama/Meta-Llama-3-8B): We utilized the Llama3 model as our foundational language model.
+- [Meta Llama 3](https://huggingface.co/meta-llama/Meta-Llama-3-8B): We utilized the Llama 3 model as our foundational language model.
 - [CLIP](https://huggingface.co/openai/clip-vit-base-patch32): Our vision backbone is CLIP model from OpenAI. 
 - Our codebase is built upon the following two codebases:
   - [Otter: A Multi-Modal Model with In-Context Instruction Tuning](https://github.com/Luodian/Otter)
