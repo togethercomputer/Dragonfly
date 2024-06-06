@@ -272,6 +272,7 @@ class DragonflyForCausalLM(DragonflyPreTrainedModel):
             position_ids = torch.arange(past_key_values_length, seq_length + past_key_values_length, dtype=torch.long, device=device)
             position_ids = position_ids.unsqueeze(0)
 
+        query_ranks = None
         if inputs_embeds is None:
             inputs_embeds = self.language_model.get_input_embeddings()(input_ids)
             if image_patches is not None and past_key_values is None:
@@ -347,6 +348,8 @@ class DragonflyForCausalLM(DragonflyPreTrainedModel):
         outputs = self.language_model(
             inputs_embeds=inputs_embeds, labels=labels, attention_mask=attention_mask, position_ids=position_ids, past_key_values=past_key_values, output_attentions=output_attentions, use_cache=use_cache, output_hidden_states=True
         )
+
+        outputs["query_ranks"] = query_ranks
 
         if not return_dict:
             return tuple(v for v in outputs if v is not None)
