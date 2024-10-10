@@ -33,13 +33,6 @@ from pipeline.train.train_utils import DistributedProxySampler
 USER_AGENT = get_datasets_user_agent()
 
 Image.MAX_IMAGE_PIXELS = 1000000000
-MAX_NUM_TOKENS = 256
-MAX_NUM_IMAGES = 5
-TINY_IMAGE_SIZE_THRESHOLD = 1
-NUM_BACKUP_SPLIT = 5000
-N_CHANNELS = 3
-INTERLEAVED_IMAGE_SIZE = 224
-MIN_KB = 10
 
 IMAGE_CAP_INSTRUCT = [
     "Analyze the image in a comprehensive and detailed manner.",

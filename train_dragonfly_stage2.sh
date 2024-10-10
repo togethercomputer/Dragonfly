@@ -24,8 +24,8 @@ accelerate launch --config_file=./pipeline/accelerate_configs/accelerate_config_
     --total_hf_checkpoint_limits 8 \
     --hf_checkpointing_steps 100000 \
     --seed 42 \
-    --image_encoder_name_or_path openai/clip-vit-base-patch32 \
-    --text_pretrained_model_name_or_path meta-llama/Meta-Llama-3-8B-Instruct \
+    --image_encoder_name_or_path openai/clip-vit-large-patch14-336 \
+    --text_pretrained_model_name_or_path meta-llama/Meta-Llama-3.1-8B-Instruct \
     --pretrained_model_name_or_path <"your_stage1_checkpoint">  \
     --gradient_checkpointing \
     --data_cache_dir <"your_hf_cache_datasets">

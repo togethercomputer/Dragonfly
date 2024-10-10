@@ -325,6 +325,7 @@ def train_one_epoch(
         total=total_training_steps,
         initial=current_global_steps,
     ):
+
         data_time_m.update(time.time() - end)
         global_step = num_steps + current_global_steps
 
@@ -422,6 +423,8 @@ def train_one_epoch(
             optimizer.step()
             lr_scheduler.step()
             optimizer.zero_grad()
+
+            # print(f"Step 3: Beginning Step: {num_steps}; Global Step: {global_step}")
 
             # step time and reset end outside of rank 0
             step_time_m.update(time.time() - end)

@@ -24,14 +24,9 @@ torch.backends.cudnn.allow_tf32 = True
 torch.backends.cuda.enable_flash_sdp(True)
 
 # set your model name and image path
-# pretrained_model_name_or_path = "togethercomputer/Llama-3-8B-Dragonfly-v1"
-# image_path = "./test_images/skateboard.png"
-# question = "Summarize the visual content of the image."
-
-# For biomed
-pretrained_model_name_or_path = "togethercomputer/Llama-3-8B-Dragonfly-Med-v1"
-image_path = "./test_images/ROCO_04197.jpg"
-question = "Provide a brief description of the given image."
+pretrained_model_name_or_path = "togethercomputer/Llama-3.1-8B-Dragonfly-v1"
+image_path = "./test_images/monalisa_dog.jpg"
+question = "What is so funny about this image?"
 
 # parameters
 device = "cuda:0"
@@ -45,7 +40,7 @@ def main():
     print(f"Loading pretrained model from {pretrained_model_name_or_path}")
 
     tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name_or_path)
-    clip_processor = AutoProcessor.from_pretrained("openai/clip-vit-base-patch32")
+    clip_processor = AutoProcessor.from_pretrained("openai/clip-vit-large-patch14-336")
     image_processor = clip_processor.image_processor
     processor = DragonflyProcessor(image_processor=image_processor, tokenizer=tokenizer, image_encoding_style="llava-hd")
 

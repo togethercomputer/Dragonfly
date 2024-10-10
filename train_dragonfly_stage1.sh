@@ -17,8 +17,8 @@ accelerate launch --config_file=./pipeline/accelerate_configs/accelerate_config_
     --logging_steps 1000 \
     --max_seq_length 2048 \
     --checkpointing_steps 5000 \
-    --image_encoder_name_or_path openai/clip-vit-base-patch32 \
-    --text_pretrained_model_name_or_path meta-llama/Meta-Llama-3-8B-Instruct \
+    --image_encoder_name_or_path openai/clip-vit-large-patch14-336 \
+    --text_pretrained_model_name_or_path meta-llama/Meta-Llama-3.1-8B-Instruct \
     --mm_tune_vision_encoder \
     --tune_vision_embed_tokens_only \
     --data_cache_dir <"your_hf_cache_datasets">

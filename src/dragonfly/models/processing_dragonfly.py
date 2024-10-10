@@ -41,9 +41,10 @@ TOKEN_POINT_OPEN_STRING = "<|reserved_special_token_4|>"  # <point>
 TOKEN_POINT_CLOSE_STRING = "<|reserved_special_token_5|>"  # </point>
 BEGINNING_OF_ANSWER_STRING = "<|end_header_id|>"  # <boa>
 
-IMG_EMB_LENGTH = 17
-IMAGE_PATCH_SIZE = 50
-
+LOW_IMG_EMB_LENGTH = 1
+LOW_IMG_PATCH_SIZE = 577
+HIGH_IMG_EMB_LENGTH = 40
+HIGH_IMG_PATCH_SIZE = 37
 
 def full_unpacked_stream_to_tensor(
     all_bi_tokens_to_place: List[int],
@@ -232,15 +233,14 @@ def process_anyres_image(image, processor, shortest_edge=None, possible_resoluti
     middle_image_padded = image.resize(middle_resolution)
     middle_patches = divide_to_patches(middle_image_padded, se)
 
-    possible_resolutions = [(6 * se, 4 * se), (4 * se, 6 * se), (3 * se, 8 * se), (8 * se, 3 * se), (2 * se, 12 * se), (12 * se, 2 * se)]
-    high_resolution = select_best_resolution(image.size, possible_resolutions)
+    high_resolution = (middle_resolution[0]*3, middle_resolution[1]*3)
     high_image_padded = image.resize(high_resolution)
     high_patches = divide_to_patches(high_image_padded, se)
 
     image_original_resize = image.resize((se, se))
-
     image_patches = [image_original_resize] + middle_patches + high_patches
-    image_patches = [processor.preprocess(image_patch, return_tensors="pt")["pixel_values"][0] for image_patch in image_patches]
+    image_patches = [processor.preprocess(image_patch, return_tensors='pt')['pixel_values'][0]
+                     for image_patch in image_patches]
     return torch.stack(image_patches, dim=0), [torch.tensor(1.0)]
 
 
@@ -524,11 +524,9 @@ class DragonflyProcessor(ProcessorMixin):
                         dim=1,
                     )
                     batched_inputs["attention_mask"].append(attention_mask)
-
                 elif key == "image_patches":
                     # For image_patches, we don't pad but just append them to the list.
                     batched_inputs[key].append(tensor)
-
                 else:  # for image_patches_indices
                     num_padding_indices = max_length_image_patch_indices - tensor.shape[1]
                     padded_indices = torch.cat(
@@ -569,11 +567,9 @@ class DragonflyProcessor(ProcessorMixin):
                         dim=1,
                     )
                     batched_inputs["attention_mask"].append(attention_mask)
-
                 elif key == "image_patches":
                     # For image_patches, we don't pad but just append them to the list.
                     batched_inputs[key].append(tensor)
-
                 else:  # for image_patches_indices
                     num_padding_indices = max_length_image_patch_indices - tensor.shape[1]
                     padded_indices = torch.cat(
@@ -614,23 +610,28 @@ class DragonflyProcessor(ProcessorMixin):
             add_beginning_of_answer_token=add_beginning_of_answer_token,
             max_length=max_length,
         )
-        # print(prompt_tokens)
-        raw_img_emb_len, imgc, imgw, imgh = pixel_values.size()
 
-        img_emb_len = IMG_EMB_LENGTH
-        image_patch_size = IMAGE_PATCH_SIZE
+        low_img_emb_length = LOW_IMG_EMB_LENGTH
+        low_img_patch_size = LOW_IMG_PATCH_SIZE
+        high_img_emb_length = HIGH_IMG_EMB_LENGTH
+        high_img_patch_size = HIGH_IMG_PATCH_SIZE
 
-        image_newline_idx = [i for i in range(img_emb_len * (1 + image_patch_size)) if (i + 1) % (image_patch_size + 1) == 0]
-        img_input_id_item = torch.full((img_emb_len * (1 + image_patch_size),), image_placeholder_id, dtype=torch.int32, device=pixel_values.device)
-        img_input_id_item[image_newline_idx] = image_newline_id
-        image_placeholder_mask = img_input_id_item == image_placeholder_id
+        low_res_newline_idx = [i for i in range(low_img_emb_length * (1 + low_img_patch_size)) if (i + 1) % (low_img_patch_size + 1) == 0]
+        high_res_index = max(low_res_newline_idx) + 1
+        high_res_newline_idx = [i + high_res_index for i in range(high_img_emb_length * (1 + high_img_patch_size)) if (i + 1) % (high_img_patch_size + 1) == 0]
+        
+        low_res_input_id_item = torch.full((low_img_emb_length * (1 + low_img_patch_size),), image_placeholder_id, dtype=torch.int32, device=pixel_values.device)
+        high_res_input_id_item = torch.full((high_img_emb_length * (1 + high_img_patch_size),), image_placeholder_id, dtype=torch.int32, device=pixel_values.device)
 
-        img_patch_indices_per_batch_item = torch.full_like(img_input_id_item, -1, dtype=torch.int32, device=pixel_values.device)
-        img_patch_idx = torch.arange(img_emb_len * image_patch_size, dtype=torch.int32, device=pixel_values.device)
-        img_patch_indices_per_batch_item[image_placeholder_mask] = img_patch_idx
-
-        image_input_ids = [[img_input_id_item for _ in prompt_seq] for prompt_seq in prompt_tokens]
-        image_patch_indices_per_batch = [[img_patch_indices_per_batch_item for _ in prompt_seq] for prompt_seq in prompt_tokens]
+        newline_idx = low_res_newline_idx + high_res_newline_idx
+        input_id_item = torch.concat((low_res_input_id_item, high_res_input_id_item))
+        input_id_item[newline_idx] = image_newline_id
+        placeholder_mask = input_id_item == image_placeholder_id
+        patch_indices_per_batch_item = torch.full_like(input_id_item, -1, dtype=torch.int32, device=pixel_values.device)
+        patch_idx = torch.arange(low_img_emb_length * low_img_patch_size + high_img_emb_length * high_img_patch_size, dtype=torch.int32, device=pixel_values.device)
+        patch_indices_per_batch_item[placeholder_mask] = patch_idx
+        image_input_ids = [[input_id_item for _ in prompt_seq] for prompt_seq in prompt_tokens]
+        image_patch_indices_per_batch = [[patch_indices_per_batch_item for _ in prompt_seq] for prompt_seq in prompt_tokens]
 
         image_padded_unpacked_tokens = construct_full_unpacked_stream(
             num_real_text_tokens=prompts_length,
@@ -764,7 +765,9 @@ class DragonflyProcessor(ProcessorMixin):
 
         # FIXME - We hard code "pt" here because the rest of the processing assumes torch tensors
         if self.image_encoding_style == "llava-hd":
-            img_proc_output = [process_anyres_image(image, self.image_processor) for image in images]
+            img_proc_output = [
+                process_anyres_image(image, self.image_processor) for image in images
+            ]
             batch_images = [item[0] for item in img_proc_output]
             scale_factors = [item[1] for item in img_proc_output]
             self.subsequence_length = 1  # Each batch contains only one sequence.
