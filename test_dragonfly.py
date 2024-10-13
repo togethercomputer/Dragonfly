@@ -8,7 +8,6 @@ from dragonfly.models.modeling_dragonfly import DragonflyForCausalLM
 from dragonfly.models.processing_dragonfly import DragonflyProcessor
 from pipeline.train.train_utils import random_seed
 
-
 def format_text(text, system_prompt=""):
     instruction = f"{system_prompt} {text}" if system_prompt else text
     prompt = f"<|start_header_id|>user<|end_header_id|>\n\n" f"{instruction}<|eot_id|><|start_header_id|>assistant<|end_header_id|>"
@@ -24,15 +23,18 @@ torch.backends.cudnn.allow_tf32 = True
 torch.backends.cuda.enable_flash_sdp(True)
 
 # set your model name and image path
-pretrained_model_name_or_path = "togethercomputer/Llama-3.1-8B-Dragonfly-v1"
-image_path = "./test_images/monalisa_dog.jpg"
-question = "What is so funny about this image?"
+# pretrained_model_name_or_path = "togethercomputer/Llama-3.1-8B-Dragonfly-v1"
+# image_path = "./test_images/monalisa_dog.jpg"
+# question = "What is so funny about this image?"
+
+pretrained_model_name_or_path = "togethercomputer/Llama-3.1-8B-Dragonfly-Med-v1"
+image_path = "./test_images/ROCO_04197.jpg"
+question = "Provide a brief description of the given image."
 
 # parameters
 device = "cuda:0"
 seed = 42
 temperature = 0
-
 
 def main():
     random_seed(seed)

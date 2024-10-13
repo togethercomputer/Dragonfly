@@ -1,9 +1,10 @@
 <div align="center">
   <img src="assets/dragonfly_icon.png" alt="Dragonfly" style="width: 150px; display: block; margin-left: auto; margin-right: auto;" />
-  <h1>Dragonfly: Multi-Resolution Zoom Supercharges Large Visual-Language Model</h1>
+  <h1>Dragonfly: Multi-Resolution Zoom-In Encoding Enhances Vision-Language Models</h1>
 </div>
 
 ## 🔥 News
+- **Note**: We updated our codebase and arxiv paper with improved version of Dragonfly architecture. If you still want to use the old version of the code, it is still in [github branch](link).
 - [Our paper](https://arxiv.org/abs/2406.00977) is out on arxiv.
 - Our model checkpoints are out on huggingface 🤗 🚀: 
     - General: [`togethercomputer/Llama-3.1-8B-Dragonfly-v1`](https://huggingface.co/togethercomputer/Llama-3.1-8B-Dragonfly-v1) 
@@ -14,7 +15,7 @@
 
 ![Dragonfly framework](assets/model_overview.png)
 
-Recent advances in vision-language models (VLMs) have demonstrated the advantages of processing images at higher resolutions and utilizing multi-crop features to preserve native resolution details. However, existing vision transformers (ViTs) often struggle to capture fine-grained details from less prominent objects, charts, and embedded text, limiting their effectiveness in certain tasks. In this paper, we go beyond recent high-resolution and multi-crop techniques by not only preserving the native resolution but also zooming in beyond it and extracting features from a large number of image sub-crops. This enhancement allows our model to better capture fine-grained details, overcoming the limitations of current ViTs. To manage the increased token count and computational complexity, we demonstrate that a simple mean-pooling aggregation over tokens is effective. Our model, Dragonfly, achieves competitive performance on general-domain tasks such as ScienceQA and AI2D, and excels in tasks requiring fine-grained image understanding, including TextVQA and ChartQA. On average, Dragonfly ranks at the top across ten general-domain benchmarks, outperforming models that are significantly larger or trained on much larger datasets. Our biomedical version, Dragonfly-Med, sets new benchmarks on several medical tasks, achieving 91.6\% accuracy on SLAKE (compared to 84.8\% for Med-Gemini), a 67.1\% token F1 score on Path-VQA (compared to 62.7\% for Med-PaLM M), and attains state-of-the-art results across the majority of performance metrics. Overall, our work establishes a new paradigm for extracting high-resolution fine-grained features from images, significantly enhancing the capabilities of VLMs in both general and specialized domains. 
+Recent advances in vision-language models (VLMs) have demonstrated the advantages of processing images at higher resolutions and utilizing multi-crop features to preserve native resolution details. However, despite these improvements, existing vision transformers (ViTs) still struggle to capture fine-grained details from less prominent objects, charts, and embedded text, limiting their effectiveness in certain tasks. In this paper, we go beyond recent high-resolution and multi-crop techniques by not only preserving the native resolution, but zooming in beyond it and extracting features from a large number of image sub-crops. This enhancement allows our model to better capture fine-grained details, overcoming the limitations of current ViTs. To manage the increased token count and computational complexity, we demonstrate that a simple mean-pooling aggregation over tokens is effective. Our model, Dragonfly, achieves competitive performance on general-domain tasks such as ScienceQA and AI2D, and excels in tasks requiring fine-grained image understanding, including TextVQA and ChartQA. Among models in the 7-8B parameter range, Dragonfly consistently ranks at the top across ten general-domain benchmarks, achieving the highest or second-highest scores in most cases, outperforming models that are significantly larger or trained on larger datasets. Our biomedical version, Dragonfly-Med, sets new benchmarks on several medical tasks, achieving 91.6% accuracy on SLAKE (compared to 84.8% for Med-Gemini), 67.1% token F1 score on Path-VQA (compared to 62.7% for Med-PaLM M), and attains state-of-the-art results across the majority of performance metrics. Overall, our work highlights the persistent challenge of engineering visual representations with fixed-resolution ViTs, and proposes a simple yet effective solution to address this issue and boost performance in both general and specialized domains. 
 
 
 # 📖 Table of Contents
@@ -25,7 +26,6 @@ Recent advances in vision-language models (VLMs) have demonstrated the advantage
 4. [Training](#training)
 6. [BibTeX](#bibtex)
 7. [Licence](#license)
-
 
 <a name="installation"/>
 
@@ -51,7 +51,7 @@ pip install --upgrade -e .
 
 ## 🏁 Checkpoint
 
-*Note: These models are released under [Llama 3 Community License Agreement](LICENSE)*
+*Note: These models are released under [Llama 3.1 Community License Agreement](LICENSE)*
 
 We release two huggingface model checkpoints: [`togethercomputer/Llama-3.1-8B-Dragonfly-v1`](https://huggingface.co/togethercomputer/Llama-3.1-8B-Dragonfly-v1) and [`togethercomputer/Llama-3.1-8B-Dragonfly-Med-v1`](https://huggingface.co/togethercomputer/Llama-3.1-8B-Dragonfly-Med-v1). Please follow the script [`test_dragonfly.py`](test_dragonfly.py) for more details. We provide a brief description on how to use them below.
 
@@ -65,7 +65,7 @@ We provide two test examples inside [`test_images`](test_images).
 
 Question: What is so funny about this image?
 
-![Skateboard](test_images/monalisa_dog.jpg)
+![Monalisa Dog](test_images/monalisa_dog.jpg)
 
 Load necessary packages
 ```python
@@ -99,7 +99,7 @@ image = image.convert("RGB")
 images = [image]
 # images = [None] # if you do not want to pass any images
 
-text_prompt = "<|start_header_id|>user<|end_header_id|>\n\nSummarize the visual content of the image.<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n"
+text_prompt = "<|start_header_id|>user<|end_header_id|>\n\nWhat is so funny about this image?<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n"
 
 inputs = processor(text=[text_prompt], images=images, max_length=4096, return_tensors="pt", is_generate=True)
 inputs = inputs.to(device)

@@ -18,7 +18,7 @@ accelerate launch --config_file=./pipeline/accelerate_configs/accelerate_config_
     --together_math_datasets <"your_math_datasets"> \
     --text_dataset_prob 0.1 \
     --logging_steps 100 \
-    --max_seq_length 2048 \
+    --max_seq_length 4096 \
     --checkpointing_steps 10000 \
     --save_hf_checkpoints \
     --total_hf_checkpoint_limits 8 \

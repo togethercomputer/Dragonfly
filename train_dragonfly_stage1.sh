@@ -15,7 +15,7 @@ accelerate launch --config_file=./pipeline/accelerate_configs/accelerate_config_
     --image_dir <"your_image_folder"> \
     --together_hq_datasets <"your_datasets"> \
     --logging_steps 1000 \
-    --max_seq_length 2048 \
+    --max_seq_length 4096 \
     --checkpointing_steps 5000 \
     --image_encoder_name_or_path openai/clip-vit-large-patch14-336 \
     --text_pretrained_model_name_or_path meta-llama/Meta-Llama-3.1-8B-Instruct \
