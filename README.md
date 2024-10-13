@@ -17,6 +17,8 @@
 
 Recent advances in vision-language models (VLMs) have demonstrated the advantages of processing images at higher resolutions and utilizing multi-crop features to preserve native resolution details. However, despite these improvements, existing vision transformers (ViTs) still struggle to capture fine-grained details from less prominent objects, charts, and embedded text, limiting their effectiveness in certain tasks. In this paper, we go beyond recent high-resolution and multi-crop techniques by not only preserving the native resolution, but zooming in beyond it and extracting features from a large number of image sub-crops. This enhancement allows our model to better capture fine-grained details, overcoming the limitations of current ViTs. To manage the increased token count and computational complexity, we demonstrate that a simple mean-pooling aggregation over tokens is effective. Our model, Dragonfly, achieves competitive performance on general-domain tasks such as ScienceQA and AI2D, and excels in tasks requiring fine-grained image understanding, including TextVQA and ChartQA. Among models in the 7-8B parameter range, Dragonfly consistently ranks at the top across ten general-domain benchmarks, achieving the highest or second-highest scores in most cases, outperforming models that are significantly larger or trained on larger datasets. Our biomedical version, Dragonfly-Med, sets new benchmarks on several medical tasks, achieving 91.6% accuracy on SLAKE (compared to 84.8% for Med-Gemini), 67.1% token F1 score on Path-VQA (compared to 62.7% for Med-PaLM M), and attains state-of-the-art results across the majority of performance metrics. Overall, our work highlights the persistent challenge of engineering visual representations with fixed-resolution ViTs, and proposes a simple yet effective solution to address this issue and boost performance in both general and specialized domains. 
 
+![Example Generations](assets/examples.png)
+
 
 # 📖 Table of Contents
 1. [Installation](#installation)
@@ -61,11 +63,11 @@ We release two huggingface model checkpoints: [`togethercomputer/Llama-3.1-8B-Dr
 
 If you have successfully completed the [Installation](#installation) process, then you should be able to follow the steps below. 
 
-We provide two test examples inside [`test_images`](test_images). 
+We provide two test examples inside [`assets`](assets). 
 
 Question: What is so funny about this image?
 
-![Monalisa Dog](test_images/monalisa_dog.jpg)
+![Monalisa Dog](assets/monalisa_dog.jpg)
 
 Load necessary packages
 ```python
@@ -94,7 +96,7 @@ model = model.to(device)
 
 Now, lets load the image and process them.
 ```python
-image = Image.open("./test_images/monalisa_dog.jpg")
+image = Image.open("./assets/monalisa_dog.jpg")
 image = image.convert("RGB")
 images = [image]
 # images = [None] # if you do not want to pass any images

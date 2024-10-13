@@ -24,11 +24,11 @@ torch.backends.cuda.enable_flash_sdp(True)
 
 # set your model name and image path
 # pretrained_model_name_or_path = "togethercomputer/Llama-3.1-8B-Dragonfly-v1"
-# image_path = "./test_images/monalisa_dog.jpg"
+# image_path = "./assets/monalisa_dog.jpg"
 # question = "What is so funny about this image?"
 
 pretrained_model_name_or_path = "togethercomputer/Llama-3.1-8B-Dragonfly-Med-v1"
-image_path = "./test_images/ROCO_04197.jpg"
+image_path = "./assets/ROCO_04197.jpg"
 question = "Provide a brief description of the given image."
 
 # parameters
