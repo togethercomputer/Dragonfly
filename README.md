@@ -21,13 +21,17 @@ Recent advances in vision-language models (VLMs) have demonstrated the advantage
 
 
 # 📖 Table of Contents
-1. [Installation](#installation)
-2. [Checkpoint](#checkpoint)
-5. [Inference](#inference)
-3. [Dataset](#dataset)
-4. [Training](#training)
-6. [BibTeX](#bibtex)
-7. [Licence](#license)
+- [📖 Table of Contents](#-table-of-contents)
+  - [💿 Installation](#-installation)
+  - [🏁 Checkpoint](#-checkpoint)
+  - [🧠 Inference](#-inference)
+  - [📊 Dataset](#-dataset)
+  - [🏋️‍♂️ Training](#️️-training)
+    - [Stage 1](#stage-1)
+    - [Stage 2](#stage-2)
+  - [🏆 Credits](#-credits)
+  - [📚 BibTeX](#-bibtex)
+  - [🪪 License](#-license)
 
 <a name="installation"/>
 
