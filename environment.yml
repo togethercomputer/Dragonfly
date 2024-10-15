@@ -1,4 +1,4 @@
-name: dragonfly_env
+name: dragonfly_env_test
 channels:
   - defaults
 dependencies:
