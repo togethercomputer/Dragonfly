@@ -7,8 +7,8 @@
 - **Note**: We updated our codebase and arxiv paper with improved version of Dragonfly architecture. If you still want to use the old version of the code, it is still in [github branch](https://github.com/togethercomputer/Dragonfly/tree/dragonfly-v1).
 - [Our paper](https://arxiv.org/abs/2406.00977) is out on arxiv.
 - Our model checkpoints are out on huggingface 🤗 🚀: 
-    - General: [`togethercomputer/Llama-3.1-8B-Dragonfly-v1`](https://huggingface.co/togethercomputer/Llama-3.1-8B-Dragonfly-v1) 
-    - Biomed: [`togethercomputer/Llama-3.1-8B-Dragonfly-Med-v1`](https://huggingface.co/togethercomputer/Llama-3.1-8B-Dragonfly-Med-v1)
+    - General: [`togethercomputer/Llama-3.1-8B-Dragonfly-v2`](https://huggingface.co/togethercomputer/Llama-3.1-8B-Dragonfly-v2) 
+    - Biomed: [`togethercomputer/Llama-3.1-8B-Dragonfly-Med-v2`](https://huggingface.co/togethercomputer/Llama-3.1-8B-Dragonfly-Med-v2)
 
 
 ## 📖 Introduction
@@ -55,7 +55,7 @@ pip install --upgrade -e .
 
 *Note: These models are released under [Llama 3.1 Community License Agreement](LICENSE)*
 
-We release two huggingface model checkpoints: [`togethercomputer/Llama-3.1-8B-Dragonfly-v1`](https://huggingface.co/togethercomputer/Llama-3.1-8B-Dragonfly-v1) and [`togethercomputer/Llama-3.1-8B-Dragonfly-Med-v1`](https://huggingface.co/togethercomputer/Llama-3.1-8B-Dragonfly-Med-v1). Please follow the script [`test_dragonfly.py`](test_dragonfly.py) for more details. We provide a brief description on how to use them below.
+We release two huggingface model checkpoints: [`togethercomputer/Llama-3.1-8B-Dragonfly-v2`](https://huggingface.co/togethercomputer/Llama-3.1-8B-Dragonfly-v2) and [`togethercomputer/Llama-3.1-8B-Dragonfly-Med-v2`](https://huggingface.co/togethercomputer/Llama-3.1-8B-Dragonfly-Med-v2). Please follow the script [`test_dragonfly.py`](test_dragonfly.py) for more details. We provide a brief description on how to use them below.
 
 <a name="inference"/>
 
@@ -84,12 +84,12 @@ Instantiate the tokenizer, processor, and model.
 ```python
 device = torch.device("cuda:0")
 
-tokenizer = AutoTokenizer.from_pretrained("togethercomputer/Llama-3.1-8B-Dragonfly-v1")
+tokenizer = AutoTokenizer.from_pretrained("togethercomputer/Llama-3.1-8B-Dragonfly-v2")
 clip_processor = AutoProcessor.from_pretrained("openai/clip-vit-large-patch14-336")
 image_processor = clip_processor.image_processor
 processor = DragonflyProcessor(image_processor=image_processor, tokenizer=tokenizer, image_encoding_style="llava-hd")
 
-model = DragonflyForCausalLM.from_pretrained("togethercomputer/Llama-3.1-8B-Dragonfly-v1")
+model = DragonflyForCausalLM.from_pretrained("togethercomputer/Llama-3.1-8B-Dragonfly-v2")
 model = model.to(torch.bfloat16)
 model = model.to(device)
 ```
