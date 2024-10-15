@@ -4,7 +4,7 @@
 </div>
 
 ## 🔥 News
-- **Note**: We updated our codebase and arxiv paper with improved version of Dragonfly architecture. If you still want to use the old version of the code, it is still in [github branch](link).
+- **Note**: We updated our codebase and arxiv paper with improved version of Dragonfly architecture. If you still want to use the old version of the code, it is still in [github branch](https://github.com/togethercomputer/Dragonfly/tree/dragonfly-v1).
 - [Our paper](https://arxiv.org/abs/2406.00977) is out on arxiv.
 - Our model checkpoints are out on huggingface 🤗 🚀: 
     - General: [`togethercomputer/Llama-3.1-8B-Dragonfly-v1`](https://huggingface.co/togethercomputer/Llama-3.1-8B-Dragonfly-v1) 
