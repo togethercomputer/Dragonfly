@@ -190,7 +190,7 @@ We would like to acknowledge the following resources that were instrumental in t
 ## 📚 BibTeX
 
 ```bibtex
-@misc{chen2024dragonfly,
+@misc{thapa2024dragonfly,
       title={Dragonfly: Multi-Resolution Zoom-In Encoding Enhances Vision-Language Models}, 
       author={Rahul Thapa and Kezhen Chen and Ian Covert and Rahul Chalamala and Ben Athiwaratkun and Shuaiwen Leon Song and James Zou},
       year={2024},
