@@ -8,7 +8,6 @@ from dragonfly.models.modeling_dragonfly import DragonflyForCausalLM
 from dragonfly.models.processing_dragonfly import DragonflyProcessor
 from pipeline.train.train_utils import random_seed
 
-
 def format_text(text, system_prompt=""):
     instruction = f"{system_prompt} {text}" if system_prompt else text
     prompt = f"<|start_header_id|>user<|end_header_id|>\n\n" f"{instruction}<|eot_id|><|start_header_id|>assistant<|end_header_id|>"
@@ -24,13 +23,12 @@ torch.backends.cudnn.allow_tf32 = True
 torch.backends.cuda.enable_flash_sdp(True)
 
 # set your model name and image path
-# pretrained_model_name_or_path = "togethercomputer/Llama-3-8B-Dragonfly-v1"
-# image_path = "./test_images/skateboard.png"
-# question = "Summarize the visual content of the image."
+# pretrained_model_name_or_path = "togethercomputer/Llama-3.1-8B-Dragonfly-v2"
+# image_path = "./assets/monalisa_dog.jpg"
+# question = "What is so funny about this image?"
 
-# For biomed
-pretrained_model_name_or_path = "togethercomputer/Llama-3-8B-Dragonfly-Med-v1"
-image_path = "./test_images/ROCO_04197.jpg"
+pretrained_model_name_or_path = "togethercomputer/Llama-3.1-8B-Dragonfly-Med-v2"
+image_path = "./assets/ROCO_04197.jpg"
 question = "Provide a brief description of the given image."
 
 # parameters
@@ -38,14 +36,13 @@ device = "cuda:0"
 seed = 42
 temperature = 0
 
-
 def main():
     random_seed(seed)
 
     print(f"Loading pretrained model from {pretrained_model_name_or_path}")
 
     tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name_or_path)
-    clip_processor = AutoProcessor.from_pretrained("openai/clip-vit-base-patch32")
+    clip_processor = AutoProcessor.from_pretrained("openai/clip-vit-large-patch14-336")
     image_processor = clip_processor.image_processor
     processor = DragonflyProcessor(image_processor=image_processor, tokenizer=tokenizer, image_encoding_style="llava-hd")
 

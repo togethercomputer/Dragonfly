@@ -241,8 +241,9 @@ class DragonflyForCausalLM(DragonflyPreTrainedModel):
         output_attentions: Optional[bool] = None,
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = True,
-        topk: Optional[int] = 3,
+        topk: Optional[int] = 5,
         region_token_interval: Optional[int] = 6,
+        steps=100,
     ) -> Union[Tuple, BaseModelOutputWithPast]:
         output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
         output_hidden_states = output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
@@ -272,71 +273,30 @@ class DragonflyForCausalLM(DragonflyPreTrainedModel):
             position_ids = torch.arange(past_key_values_length, seq_length + past_key_values_length, dtype=torch.long, device=device)
             position_ids = position_ids.unsqueeze(0)
 
+        query_ranks = None
         if inputs_embeds is None:
             inputs_embeds = self.language_model.get_input_embeddings()(input_ids)
             if image_patches is not None and past_key_values is None:
 
-                # first, lets extract the high resolution image patches and generate embeddings from them using the image encoder
-                # we also project them through the projection layer
-                query_hd_patches = [full_img_patches[5:] for full_img_patches in image_patches]
-                query_outputs = [self.image_encoder(patch_pixel_values.to(self.vision_embed_tokens.weight.dtype), output_hidden_states=True) for patch_pixel_values in query_hd_patches]
-                query_image_patches = [item.hidden_states[-2] for item in query_outputs]
-                query_image_patches = [self.vision_embed_tokens(patch.to(self.vision_embed_tokens.weight.dtype)) for patch in query_image_patches]
-                query_ranks = [torch.mean(query_item, 1) for query_item in query_image_patches]
+                # breakpoint()
 
-                # now, lets extract the low and mid resolution image patches and generate embeddings from them using the image encoder
-                # we similarly project them through the projection layer
-                image_patches = [full_img_patches[:5] for full_img_patches in image_patches]
                 ie_outputs = [self.image_encoder(patch_pixel_values.to(self.vision_embed_tokens.weight.dtype), output_hidden_states=True).hidden_states[-2] for patch_pixel_values in image_patches]
                 ie_outputs = [self.vision_embed_tokens(patch_pixel_values.to(self.vision_embed_tokens.weight.dtype)) for patch_pixel_values in ie_outputs]
 
-                """Now, for each mid resolution region, we select the top k high resolution regions using 
-                the dot product of the region embeddings with the query embeddings. The query embeddings 
-                are the mean of the high resolution region embeddings and the region embeddings are the 
-                mean of the mid resolution region embeddings
-                """
+                low_res_embeddings = [ie_output[:1] for ie_output in ie_outputs]
+                high_res_embeddings = [ie_output[1:] for ie_output in ie_outputs]
 
-                # region 1
-                abstract_query1 = [torch.mean(patch_item[1], 0) for patch_item in ie_outputs]
-                query_ranks1 = [torch.matmul(qr, abstract.unsqueeze(-1)).squeeze(-1) for qr, abstract in zip(query_ranks, abstract_query1)]
-                query_ranks_mask1 = torch.zeros(query_ranks[0].size()[:-1]).to(query_ranks[0].device)
-                query_ranks_mask1.scatter_(0, torch.arange(region_token_interval, region_token_interval * 4).to(query_ranks[0].device), float("-inf"))
-                query_ranks1 = [T + query_ranks_mask1 for T in query_ranks1]
-                query_ranks1 = [torch.topk(item, topk).indices for item in query_ranks1]
-
-                # region 2
-                abstract_query2 = [torch.mean(patch_item[2], 0) for patch_item in ie_outputs]
-                query_ranks2 = [torch.matmul(qr, abstract.unsqueeze(-1)).squeeze(-1) for qr, abstract in zip(query_ranks, abstract_query2)]
-                query_ranks_mask2 = torch.zeros(query_ranks[0].size()[:-1]).to(query_ranks[0].device)
-                query_ranks_mask2.scatter_(0, torch.concat([torch.arange(0, region_token_interval).to(query_ranks[0].device), torch.arange(region_token_interval * 2, region_token_interval * 4).to(query_ranks[0].device)]), float("-inf"))
-                query_ranks2 = [T + query_ranks_mask2 for T in query_ranks2]
-                query_ranks2 = [torch.topk(item, topk).indices for item in query_ranks2]
-
-                # region 3
-                abstract_query3 = [torch.mean(patch_item[3], 0) for patch_item in ie_outputs]
-                query_ranks3 = [torch.matmul(qr, abstract.unsqueeze(-1)).squeeze(-1) for qr, abstract in zip(query_ranks, abstract_query3)]
-                query_ranks_mask3 = torch.zeros(query_ranks[0].size()[:-1]).to(query_ranks[0].device)  # add
-                query_ranks_mask3.scatter_(
-                    0, torch.concat([torch.arange(0, region_token_interval * 2).to(query_ranks[0].device), torch.arange(region_token_interval * 3, region_token_interval * 4).to(query_ranks[0].device)]), float("-inf")
-                )  # add
-                query_ranks3 = [T + query_ranks_mask3 for T in query_ranks3]  # add
-                query_ranks3 = [torch.topk(item, topk).indices for item in query_ranks3]
-
-                # region 4
-                abstract_query4 = [torch.mean(patch_item[4], 0) for patch_item in ie_outputs]
-                query_ranks4 = [torch.matmul(qr, abstract.unsqueeze(-1)).squeeze(-1) for qr, abstract in zip(query_ranks, abstract_query4)]
-                query_ranks_mask4 = torch.zeros(query_ranks[0].size()[:-1]).to(query_ranks[0].device)  # add
-                query_ranks_mask4.scatter_(0, torch.arange(0, region_token_interval * 3).to(query_ranks[0].device), float("-inf"))  # add
-                query_ranks4 = [T + query_ranks_mask4 for T in query_ranks4]  # add
-                query_ranks4 = [torch.topk(item, topk).indices for item in query_ranks4]
-
-                # Construct visual encoding
-                query_ranks = [torch.concat([q1, q2, q3, q4]) for q1, q2, q3, q4 in zip(query_ranks1, query_ranks2, query_ranks3, query_ranks4)]
-                query_ranks = [torch.sort(item).values for item in query_ranks]
-                selected_image_patches = [torch.index_select(q_image_patches, 0, q_ranks) for (q_image_patches, q_ranks) in zip(query_image_patches, query_ranks)]
-
-                # concat
-                patch_embeddings = [torch.concat([ie_output.view(-1, self.config.hidden_size), s_image_patches.view(-1, self.config.hidden_size)]) for ie_output, s_image_patches in zip(ie_outputs, selected_image_patches)]
+                high_patch_embeddings = []
+                for ie_output in high_res_embeddings:
+                    cls_token = ie_output[:, :1, :]  # Shape: [B, 1, 1024]
+                    img_tokens = ie_output[:, 1:, :]  # Shape: [B, 576, 1024]
+                    img_tokens_reshaped = img_tokens.view(ie_output.size(0), 24, 24, -1)
+                    img_tokens_pooled = F.avg_pool2d(img_tokens_reshaped.permute(0, 3, 1, 2), kernel_size=4, stride=4)  # Shape: [B, 1024, 6, 6]
+                    img_tokens_pooled = img_tokens_pooled.permute(0, 2, 3, 1).view(ie_output.size(0), -1, ie_output.size(2))  # Shape: [B, 36, 1024]
+                    output = torch.cat([cls_token, img_tokens_pooled], dim=1)
+                    high_patch_embeddings.append(output)
+                
+                patch_embeddings = [torch.concat([low_res.view(-1, self.config.hidden_size), high_res.view(-1, self.config.hidden_size)]) for low_res, high_res in zip(low_res_embeddings, high_patch_embeddings)]
 
                 inputs_embeds = self.gather_continuous_embeddings(
                     word_embeddings=inputs_embeds,
@@ -347,6 +307,8 @@ class DragonflyForCausalLM(DragonflyPreTrainedModel):
         outputs = self.language_model(
             inputs_embeds=inputs_embeds, labels=labels, attention_mask=attention_mask, position_ids=position_ids, past_key_values=past_key_values, output_attentions=output_attentions, use_cache=use_cache, output_hidden_states=True
         )
+
+        outputs["query_ranks"] = query_ranks
 
         if not return_dict:
             return tuple(v for v in outputs if v is not None)

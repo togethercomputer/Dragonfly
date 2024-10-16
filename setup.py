@@ -7,13 +7,13 @@ with open("requirements.txt") as f:
 
 setup(
     name="dragonfly",
-    version="0.1.0",
+    version="0.1.1",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     install_requires=requirements,
     author="Together AI",
-    author_email="kezhen@together.ai",
-    description="Dragonfly: Multi-Resolution Zoom Supercharges Large Visual-Language Model",
+    author_email="rthapa84@stanford.edu",
+    description="Dragonfly: Multi-Resolution Zoom-In Encoding Enhances Vision-Language Models",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/togethercomputer/Dragonfly",
